@@ -51,4 +51,4 @@ pacman --noconfirm -S ninja
 pacman --noconfirm -S cmake
 
 echo "Done."
-# echo "Don't forget to run /mingw64_shell.bat to create a session to build in."
+# echo "Don't forget to run /mingw64_shell.cmd -mingw64 to create a new session to build in."

@@ -37,7 +37,9 @@ fi
 
 # Check if we are compiling under windows...
 UNAME=`uname | cut -d'-' -f1`
-if [ "$UNAME" != "MINGW32_NT" ] ; then
+if [ "$UNAME" != "MINGW64_NT" ] ; then
+# CJEC, 20-Jan-22: Switch MSYS to use emulated symbolic links so that tar can create files with dangling links during make install
+  MSYS=winsymlinks:lnk ; export MSYS
   if [ ! \( -d $prefix -a -w $prefix \) ] ; then
     if [ ! \( -d $(basename $prefix) -a -w $(basename $prefix) \) ] ; then
       NEEDSROOT="true"
@@ -78,8 +80,11 @@ echo "Using c++ compiler $CXX"
 echo "===="
 
 # Flags for windows build.
-if [ "$UNAME" == "MINGW32_NT" ] ; then
-  export cc_flags="-fstrict-aliasing -fno-omit-frame-pointer"
+if [ "$UNAME" == "MINGW64_NT" ] ; then
+  export cc_flags="-v -fstrict-aliasing -fno-omit-frame-pointer"
+  # CJEC, 10-Dec-21: Use setenv MSYS winsymlinks:lnk when building frameworks in GNUstep to avoid tar symlink creation problem
+  export MSYS=winsymlinks:lnk
+  env | grep MSYS
 fi
 
 # If we are building with clang, then add this to cc_flags
@@ -93,7 +98,7 @@ cd tools-make
 # make distclean
 if [ "$CC" == "gcc" ]; then
     echo "==== BUILDING WITH GCC"
-    echo "Build command: CCFLAGS=$cc_flags CC=$CC ./configure --prefix=${prefix} --with-layout=gnustep $make_flags"
+    echo "Build command: CCFLAGS=$cc_flags CC=$CC ./configure --prefix=${prefix} --enable-native-objc-exceptions --with-layout=gnustep $make_flags"
 
     echo "===="
     CCFLAGS=$cc_flags CXX=$CXX CC=$CC ./configure --prefix=${prefix} --with-layout=gnustep ${make_flags}
@@ -126,10 +131,13 @@ if [ "$CC" != "gcc" ]; then
     ${scriptsdir}/clang-setup "$CLANG" "$CLANGPP"
 fi
 
+# CJEC, 9-Dec-21: Wait to edit makefiles
+read -p "$0: About to BUILD libs-base. Continuing. ARE YOU SURE? Press <CTRL>-C to abort, <RETURN> to continue... " input
+
 # Install base
 echo "======== Installing Base..."
 cd ../libs-base
-make distclean
+$MAKE GNUSTEP_INSTALLATION_DOMAIN=SYSTEM distclean
 . $prefix/System/Library/Makefiles/GNUstep.sh
 $MAKE GNUSTEP_INSTALLATION_DOMAIN=SYSTEM debug=yes
 if [ "true" == "$NEEDSROOT" ]; then
@@ -138,10 +146,13 @@ else
 $MAKE GNUSTEP_INSTALLATION_DOMAIN=SYSTEM install
 fi
 
+# CJEC, 9-Dec-21: Wait to edit makefiles
+read -p "$0: About to BUILD libs-gui. Continuing. ARE YOU SURE? Press <CTRL>-C to abort, <RETURN> to continue... " input
+
 # Install gui
 echo "======== Installing GUI..."
 cd ../libs-gui
-make distclean
+$MAKE GNUSTEP_INSTALLATION_DOMAIN=SYSTEM distclean
 . $prefix/System/Library/Makefiles/GNUstep.sh
 ./configure --enable-imagemagick
 $MAKE GNUSTEP_INSTALLATION_DOMAIN=SYSTEM debug=yes
@@ -151,10 +162,13 @@ else
 $MAKE GNUSTEP_INSTALLATION_DOMAIN=SYSTEM install
 fi
 
+# CJEC, 9-Dec-21: Wait to edit makefiles
+read -p "$0: About to BUILD libs-back. Continuing. ARE YOU SURE? Press <CTRL>-C to abort, <RETURN> to continue... " input
+
 # Install back
 echo "======== Installing Backend..."
 cd ../libs-back
-make distclean
+$MAKE GNUSTEP_INSTALLATION_DOMAIN=SYSTEM distclean
 . $prefix/System/Library/Makefiles/GNUstep.sh
 $MAKE GNUSTEP_INSTALLATION_DOMAIN=SYSTEM debug=yes
 if [ "true" == "$NEEDSROOT" ]; then
@@ -163,6 +177,47 @@ else
 $MAKE GNUSTEP_INSTALLATION_DOMAIN=SYSTEM install
 fi
 
+# CJEC, 10-Dec-21: Build essential tools
+
+cd ../apps-projectcenter
+# CJEC, 9-Dec-21: Wait to edit makefiles
+read -p "$0: About to BUILD ProjectCenter. Continuing. ARE YOU SURE? Press <CTRL>-C to abort, <RETURN> to continue... " input
+. $prefix/System/Library/Makefiles/GNUstep.sh
+make clean
+make -j8
+make install
+
+cd ../PDFKit
+# CJEC, 9-Dec-21: Wait to edit makefiles
+read -p "$0: About to BUILD PDFKit. Continuing. ARE YOU SURE? Press <CTRL>-C to abort, <RETURN> to continue... " input
+. $prefix/System/Library/Makefiles/GNUstep.sh
+make clean
+./configure
+make -j8
+make install
+
+cd ../apps-gworkspace
+# CJEC, 9-Dec-21: Wait to edit makefiles
+read -p "$0: About to BUILD GWorkspace. Continuing. ARE YOU SURE? Press <CTRL>-C to abort, <RETURN> to continue... " input
+. $prefix/System/Library/Makefiles/GNUstep.sh
+make clean
+./configure
+make -j8
+make install
+
+cd ../apps-systempreferences
+# CJEC, 9-Dec-21: Wait to edit makefiles
+read -p "$0: About to BUILD SystemPreferences. Continuing. ARE YOU SURE? Press <CTRL>-C to abort, <RETURN> to continue... " input
+. $prefix/System/Library/Makefiles/GNUstep.sh
+make clean
+make -j8
+make install
+
+if [ "$UNAME" != "MINGW64_NT" ] ; then
+# CJEC, 20-Jan-22: Switch MSYS to use real symbolic links for normal operation
+  MSYS=winsymlinks:lnk ; export MSYS
+
+else
 # Perform other operations
 echo "Add script to etc and xsession..."
 if [ ! -e /etc/profile.d/GNUstep.sh ]; then
@@ -170,4 +225,7 @@ if [ ! -e /etc/profile.d/GNUstep.sh ]; then
 fi
 cd ../plugins-session
 ${SUDO} -u root ./install.sh
+
+fi
+
 echo "Done."
