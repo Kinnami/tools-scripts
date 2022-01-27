@@ -126,7 +126,7 @@ fi
 # Install make after configuration...
 echo "$0: ==== Installing Make..."
 $MAKE
-if [ "$UNAME" != "MINGW64_NT" ] ; then
+if [ "$UNAME" == "MINGW64_NT" ] ; then
 # CJEC, 20-Jan-22: Switch MSYS to use emulated symbolic links so that tar can create files with dangling links during make install
    MSYS=winsymlinks:lnk ; export MSYS
 fi
@@ -135,7 +135,7 @@ if [ "true" == "$NEEDSROOT" ]; then
 else
    $MAKE install
 fi 
-if [ "$UNAME" != "MINGW64_NT" ] ; then
+if [ "$UNAME" == "MINGW64_NT" ] ; then
 # CJEC, 20-Jan-22: Switch MSYS to use native (real) symbolic links for building and avoiding .lnk files
    MSYS=winsymlinks:nativestrict ; export MSYS
 fi
@@ -159,7 +159,7 @@ cd ../libs-base
 $MAKE GNUSTEP_INSTALLATION_DOMAIN=SYSTEM distclean
 . $prefix/System/Library/Makefiles/GNUstep.sh
 $MAKE GNUSTEP_INSTALLATION_DOMAIN=SYSTEM debug=yes
-if [ "$UNAME" != "MINGW64_NT" ] ; then
+if [ "$UNAME" == "MINGW64_NT" ] ; then
 # CJEC, 20-Jan-22: Switch MSYS to use emulated symbolic links so that tar can create files with dangling links during make install
    MSYS=winsymlinks:lnk ; export MSYS
 fi
@@ -168,7 +168,7 @@ if [ "true" == "$NEEDSROOT" ]; then
 else
    $MAKE GNUSTEP_INSTALLATION_DOMAIN=SYSTEM install
 fi
-if [ "$UNAME" != "MINGW64_NT" ] ; then
+if [ "$UNAME" == "MINGW64_NT" ] ; then
 # CJEC, 20-Jan-22: Switch MSYS to use native (real) symbolic links for building and avoiding .lnk files
    MSYS=winsymlinks:nativestrict ; export MSYS
 fi
@@ -180,7 +180,7 @@ $MAKE GNUSTEP_INSTALLATION_DOMAIN=SYSTEM distclean
 . $prefix/System/Library/Makefiles/GNUstep.sh
 ./configure --enable-imagemagick
 $MAKE GNUSTEP_INSTALLATION_DOMAIN=SYSTEM debug=yes
-if [ "$UNAME" != "MINGW64_NT" ] ; then
+if [ "$UNAME" == "MINGW64_NT" ] ; then
 # CJEC, 20-Jan-22: Switch MSYS to use emulated symbolic links so that tar can create files with dangling links during make install
    MSYS=winsymlinks:lnk ; export MSYS
 fi
@@ -189,7 +189,7 @@ if [ "true" == "$NEEDSROOT" ]; then
 else
    $MAKE GNUSTEP_INSTALLATION_DOMAIN=SYSTEM install
 fi
-if [ "$UNAME" != "MINGW64_NT" ] ; then
+if [ "$UNAME" == "MINGW64_NT" ] ; then
 # CJEC, 20-Jan-22: Switch MSYS to use native (real) symbolic links for building and avoiding .lnk files
    MSYS=winsymlinks:nativestrict ; export MSYS
 fi
@@ -200,7 +200,7 @@ cd ../libs-back
 $MAKE GNUSTEP_INSTALLATION_DOMAIN=SYSTEM distclean
 . $prefix/System/Library/Makefiles/GNUstep.sh
 $MAKE GNUSTEP_INSTALLATION_DOMAIN=SYSTEM debug=yes
-if [ "$UNAME" != "MINGW64_NT" ] ; then
+if [ "$UNAME" == "MINGW64_NT" ] ; then
 # CJEC, 20-Jan-22: Switch MSYS to use emulated symbolic links so that tar can create files with dangling links during make install
    MSYS=winsymlinks:lnk ; export MSYS
 fi
@@ -209,7 +209,7 @@ if [ "true" == "$NEEDSROOT" ]; then
 else
    $MAKE GNUSTEP_INSTALLATION_DOMAIN=SYSTEM install
 fi
-if [ "$UNAME" != "MINGW64_NT" ] ; then
+if [ "$UNAME" == "MINGW64_NT" ] ; then
 # CJEC, 20-Jan-22: Switch MSYS to use native (real) symbolic links for building and avoiding .lnk files
    MSYS=winsymlinks:nativestrict ; export MSYS
 fi
@@ -221,7 +221,7 @@ $MAKE GNUSTEP_INSTALLATION_DOMAIN=SYSTEM distclean
 . $prefix/System/Library/Makefiles/GNUstep.sh
    ./configure
 $MAKE GNUSTEP_INSTALLATION_DOMAIN=SYSTEM debug=yes
-if [ "$UNAME" != "MINGW64_NT" ] ; then
+if [ "$UNAME" == "MINGW64_NT" ] ; then
 # CJEC, 20-Jan-22: Switch MSYS to use emulated symbolic links so that tar can create files with dangling links during make install
    MSYS=winsymlinks:lnk ; export MSYS
 fi
@@ -230,7 +230,7 @@ if [ "true" == "$NEEDSROOT" ]; then
 else
    $MAKE GNUSTEP_INSTALLATION_DOMAIN=SYSTEM install
 fi
-if [ "$UNAME" != "MINGW64_NT" ] ; then
+if [ "$UNAME" == "MINGW64_NT" ] ; then
 # CJEC, 20-Jan-22: Switch MSYS to use native (real) symbolic links for building and avoiding .lnk files
    MSYS=winsymlinks:nativestrict ; export MSYS
 fi
@@ -241,12 +241,12 @@ cd ../apps-projectcenter
 . $prefix/System/Library/Makefiles/GNUstep.sh
 $MAKE distclean
 $MAKE
-if [ "$UNAME" != "MINGW64_NT" ] ; then
+if [ "$UNAME" == "MINGW64_NT" ] ; then
 # CJEC, 20-Jan-22: Switch MSYS to use emulated symbolic links so that tar can create files with dangling links during make install
    MSYS=winsymlinks:lnk ; export MSYS
 fi
 $MAKE install
-if [ "$UNAME" != "MINGW64_NT" ] ; then
+if [ "$UNAME" == "MINGW64_NT" ] ; then
 # CJEC, 20-Jan-22: Switch MSYS to use native (real) symbolic links for building and avoiding .lnk files
    MSYS=winsymlinks:nativestrict ; export MSYS
 fi
@@ -257,12 +257,12 @@ cd ../PDFKit
 $MAKE distclean
 ./configure
 $MAKE
-if [ "$UNAME" != "MINGW64_NT" ] ; then
+if [ "$UNAME" == "MINGW64_NT" ] ; then
 # CJEC, 20-Jan-22: Switch MSYS to use emulated symbolic links so that tar can create files with dangling links during make install
    MSYS=winsymlinks:lnk ; export MSYS
 fi
 $MAKE install
-if [ "$UNAME" != "MINGW64_NT" ] ; then
+if [ "$UNAME" == "MINGW64_NT" ] ; then
 # CJEC, 20-Jan-22: Switch MSYS to use native (real) symbolic links for building and avoiding .lnk files
    MSYS=winsymlinks:nativestrict ; export MSYS
 fi
@@ -273,12 +273,12 @@ cd ../apps-gworkspace
 $MAKE distclean
 ./configure
 $MAKE
-if [ "$UNAME" != "MINGW64_NT" ] ; then
+if [ "$UNAME" == "MINGW64_NT" ] ; then
 # CJEC, 20-Jan-22: Switch MSYS to use emulated symbolic links so that tar can create files with dangling links during make install
    MSYS=winsymlinks:lnk ; export MSYS
 fi
 $MAKE install
-if [ "$UNAME" != "MINGW64_NT" ] ; then
+if [ "$UNAME" == "MINGW64_NT" ] ; then
 # CJEC, 20-Jan-22: Switch MSYS to use native (real) symbolic links for building and avoiding .lnk files
    MSYS=winsymlinks:nativestrict ; export MSYS
 fi
@@ -288,12 +288,12 @@ cd ../apps-systempreferences
 . $prefix/System/Library/Makefiles/GNUstep.sh
 $MAKE distclean
 $MAKE
-if [ "$UNAME" != "MINGW64_NT" ] ; then
+if [ "$UNAME" == "MINGW64_NT" ] ; then
 # CJEC, 20-Jan-22: Switch MSYS to use emulated symbolic links so that tar can create files with dangling links during make install
    MSYS=winsymlinks:lnk ; export MSYS
 fi
 $MAKE install
-if [ "$UNAME" != "MINGW64_NT" ] ; then
+if [ "$UNAME" == "MINGW64_NT" ] ; then
 # CJEC, 20-Jan-22: Switch MSYS to use native (real) symbolic links for building and avoiding .lnk files
    MSYS=winsymlinks:nativestrict ; export MSYS
 fi
