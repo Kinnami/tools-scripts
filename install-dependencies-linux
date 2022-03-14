@@ -39,7 +39,14 @@ install_debian()
     sudo apt-get --yes --force-yes install sphinxtrain
     sudo apt-get --yes --force-yes install libssl-dev
     sudo apt-get --yes --force-yes install freeglut3-dev
-    
+
+# CJEC, 14-Mar-22: Install additional dependencies for Ubuntu 20.04 build with CLANG
+#					defined in https://github.com/plaurent/gnustep-build.git /ubuntu-20.04-clang-10.0-runtime-2.0/GNUstep-buildon-ubuntu2004.sh
+	sudo apt -y install build-essential wget git subversion \
+		libgnutls28-dev libkqueue-dev libpthread-workqueue-dev autoconf libtool \
+		libcairo-dev libx11-dev libxrandr-dev \
+		curl
+
     echo "-------"
     echo "Done..."
 }

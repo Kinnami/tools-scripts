@@ -3,9 +3,5 @@
 cd plugins-themes-WinUXTheme
 make GNUSTEP_INSTALLATION_DOMAIN=SYSTEM debug=yes install
 
-cd ../
-cd apps-gorm
-make GNUSTEP_INSTALLATION_DOMAIN=SYSTEM debug=yes install
-
 cd ..
 defaults write NSGlobalDomain GSTheme WinUXTheme
