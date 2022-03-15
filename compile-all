@@ -1,13 +1,18 @@
 #!/bin/bash
 #
+# Note: FreeBSD installs bash at /usr/local/bin, so this script
+# requires a symbolc link to that location.
+#
+# Note: Windows 10 NFS Client fails after a while when executing
+# this script. Instead, use Windows SMBFS (Windows network client).
+#
 # Run this script as root to configure, compile and install
 # libobjc.so.4.x, libdispatch.so, (if needed by the platform,)
 # gnustep-make, gnustep-base, gnustep-gui, gnustep-back,
 # gnustep-corebase,
 # and essential applications: ProjectCenter, GWorkspace,
 # (including PDFKit,) SystemPreferences, Gorm, and the
-# Windows Theme on Windows
-# with a single command.
+# Windows Theme on Windows with a single command.
 # The script expects the various targets (EG tools-make) to
 # be subdirectories of the current working directory.
 #
@@ -347,6 +352,7 @@ cd ../libs-gui
 $MAKE GNUSTEP_INSTALLATION_DOMAIN=SYSTEM distclean
 . $prefix/System/Library/Makefiles/GNUstep.sh
 ./configure --enable-imagemagick
+# CJEC, 15-Mar-22: FreeBSD requires a symbolic link in /usr/local/include: ln -s ImageMagick-7/MagicCore magick
 $MAKE GNUSTEP_INSTALLATION_DOMAIN=SYSTEM debug=yes
 if [ ! "$?" = "0" ]; then
         echo "$0: ==== Build GNUstep GUI (Cocoa AppKit) FAILED"
@@ -395,8 +401,9 @@ echo "$0: ==== Building and installing GNUstep CoreBase (Core Foundation)..."
 cd ../libs-corebase
 $MAKE GNUSTEP_INSTALLATION_DOMAIN=SYSTEM distclean
 . $prefix/System/Library/Makefiles/GNUstep.sh
-# CJEC, 14-Mar-22: It should not be necessary to set CFLAGS before configure, but without it, the script fails because it can't find Objective C header files
-CFLAGS=-I/usr/local/GNUstep/Local/Library/Headers ./configure
+# CJEC, 14-Mar-22: FreeBSD: Make sure that the GNUstep Objective C header files are in front any others
+# CJEC, 14-Mar-22: Linux: Make sure that ICU header files for Linux can be found
+CFLAGS="-I/usr/local/GNUstep/Local/Library/Headers -I/usr/local/include" ./configure
 $MAKE GNUSTEP_INSTALLATION_DOMAIN=SYSTEM debug=yes
 if [ ! "$?" = "0" ]; then
         echo "$0: ==== Build GNUstep CoreBase (Core Foundation) FAILED"

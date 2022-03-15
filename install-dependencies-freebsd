@@ -4,22 +4,33 @@ echo "Installing FreeBSD dependencies"
 echo "NOTE: This file assumes that Xorg is installed and that sudo is installed."
 echo "      Also, the user must have sudo access to properly execute this script."
 echo "Installing..."
-sudo pkg install libobjc2
-sudo pkg install clang
-sudo pkg install gmake
-sudo pkg install cmake
-sudo pkg install windowmaker
-sudo pkg install openjpeg
-sudo pkg install tiff
-sudo pkg install png
-sudo pkg install libxml
-sudo pkg install libxslt
-sudo pkg install gnutls
-sudo pkg install libffi
-sudo pkg install icu
-sudo pkg install cairo
-sudo pkg install avahi
-sudo pkg install portaudio
-sudo pkg install flite
+sudo pkg install -y libobjc2
+sudo pkg install -y clang
+sudo pkg install -y gmake
+sudo pkg install -y cmake
+sudo pkg install -y windowmaker
+sudo pkg install -y openjpeg
+sudo pkg install -y tiff
+sudo pkg install -y png
+sudo pkg install -y libxml
+sudo pkg install -y libxslt
+sudo pkg install -y gnutls
+sudo pkg install -y libffi
+sudo pkg install -y icu
+sudo pkg install -y cairo
+sudo pkg install -y avahi
+sudo pkg install -y portaudio
+sudo pkg install -y flite
+
+# CJEC, 14-Mar-22: Install additional dependencies for GhostBSD/FreeBSD build with CLANG
+#					derived from modifying Ubuntu 20.04 build in
+#					https://github.com/plaurent/gnustep-build.git /ubuntu-20.04-clang-10.0-runtime-2.0/GNUstep-buildon-ubuntu2004.sh
+sudo pkg install -y gmake wget git subversion libxml2 \
+	autoconf libtool \
+	jpeg-turbo libX11 libXft libXrandr pkgconf \
+	curl
+# GhostBSD: May also need: https://forums.swift.org/t/swift-compilation-on-freebsd/20597/4
+# ninja python e2fsprogs-libuuid libedit sqlite3 swig ncurses rsync
+
 echo "Done..."
 exit 0
