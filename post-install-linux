@@ -1,7 +1,2 @@
 #!/bin/sh
 
-pwd
-cd apps-gorm
-make debug=yes
-su -c 'make GNUSTEP_INSTALLATION_DOMAIN=SYSTEM debug=yes install'
-

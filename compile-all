@@ -1,4 +1,4 @@
-#!/usr/local/bin/bash
+#!/bin/bash
 #
 # Run this script as root to configure, compile and install
 # libobjc.so.4.x, libdispatch.so, (if needed by the platform,)
@@ -77,7 +77,7 @@ else
       if [ "$UNAME" == "Linux" ] ; then
          CPUS=`nproc`
 	  else
-	     echo "$0: Unkonwn platform "$UNAME". Needs porting?"
+	     echo "$0: Unknown platform "$UNAME". Needs porting?"
 	     exit 1
       fi
    fi
@@ -164,7 +164,7 @@ else
          export LDFLAGS="-fuse-ld=${LD} -L/usr/local/lib -ldispatch"
          export PKG_CONFIG_PATH=/usr/local/lib/pkgconfig
 	  else
-	     echo "$0: Unkonwn platform "$UNAME". Needs porting?"
+	     echo "$0: Unknown platform "$UNAME". Needs porting?"
 	     exit 1
       fi
    fi
@@ -215,15 +215,16 @@ if [ "$UNAME" == "MINGW64_NT" ] ; then
 fi
 
 # If we are building with clang and also building libobjc2 (libobjc.so.4.x), we need to build libdispatch and libobjc.so.4.x and then install GNUstep make again
-if [ "$CC" != "clang" ] ; then
+if [ "$CC" == "clang" ] ; then
    if [ "$UNAME" == "FreeBSD" ] ; then
-      $NEEDSLIBOBJC2="false"
+      NEEDSLIBOBJC2="false"
       echo "$0: FreeBSD uses libobjc.so.4.x provided with the operating system"
    else
       if [ "$UNAME" == "Linux" ] ; then
-         $NEEDSLIBOBJC2="true"
+         NEEDSLIBOBJC2="true"
+         echo "$0: Linux uses libobjc.so.4.x that will be built now"
 	  else
-	     echo "$0: Unkonwn platform "$UNAME". Needs porting?"
+	     echo "$0: Unknown platform "$UNAME". Needs porting?"
 	     exit 1
       fi
    fi
@@ -394,7 +395,8 @@ echo "$0: ==== Building and installing GNUstep CoreBase (Core Foundation)..."
 cd ../libs-corebase
 $MAKE GNUSTEP_INSTALLATION_DOMAIN=SYSTEM distclean
 . $prefix/System/Library/Makefiles/GNUstep.sh
-./configure
+# CJEC, 14-Mar-22: It should not be necessary to set CFLAGS before configure, but without it, the script fails because it can't find Objective C header files
+CFLAGS=-I/usr/local/GNUstep/Local/Library/Headers ./configure
 $MAKE GNUSTEP_INSTALLATION_DOMAIN=SYSTEM debug=yes
 if [ ! "$?" = "0" ]; then
         echo "$0: ==== Build GNUstep CoreBase (Core Foundation) FAILED"
