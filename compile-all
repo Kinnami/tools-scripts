@@ -166,7 +166,8 @@ else
    else
       if [ "$UNAME" == "Linux" ] ; then
          export LD=/usr/bin/ld.gold
-         export LDFLAGS="-fuse-ld=${LD} -L/usr/local/lib -ldispatch"
+         # Can't link with libdispatch until we've built it
+         export LDFLAGS="-fuse-ld=${LD} -L/usr/local/lib"
          export PKG_CONFIG_PATH=/usr/local/lib/pkgconfig
 	  else
 	     echo "$0: Unknown platform "$UNAME". Needs porting?"
@@ -260,6 +261,11 @@ if [ "true" == "$NEEDSLIBOBJC2" ]; then
    if [ "$UNAME" == "MINGW64_NT" ] ; then
    # CJEC, 20-Jan-22: Switch MSYS to use native (real) symbolic links for building and avoiding .lnk files
       MSYS=winsymlinks:nativestrict ; export MSYS
+   fi
+   if [ "$UNAME" == "Linux" ] ; then
+     # After installing libdispatch, link everything else with it.
+     # Note: When building on PiOS, the libdispatch.so and libBlocksRuntime.so are installed in an ARM-specific subdireectory. Need symlinks to the binaries
+	 export LDFLAGS="-fuse-ld=${LD} -L/usr/local/lib -ldispatch"
    fi
    
    echo "$0: ==== Building and installing libobjc2 (libobjc.so.4.x)..."
