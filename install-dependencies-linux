@@ -46,6 +46,10 @@ install_debian()
 		libgnutls28-dev libkqueue-dev libpthread-workqueue-dev autoconf libtool \
 		libcairo-dev libx11-dev libxrandr-dev \
 		curl
+# CJEC, 26-Sep-22: Install GnuTLS runtime required for TLS support in GNUstep Foundation.
+#			make check fails for libs-base without this.
+#			https://help.ubuntu.com/community/GnuTLS
+	sudo apt-get --yes --force-yes install gnutls-bin
 
     echo "-------"
     echo "Done..."
