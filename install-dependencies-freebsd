@@ -33,5 +33,8 @@ sudo pkg install -y gmake wget git subversion libxml2 \
 # GhostBSD: May also need: https://forums.swift.org/t/swift-compilation-on-freebsd/20597/4
 # ninja python e2fsprogs-libuuid libedit sqlite3 swig ncurses rsync
 
+# CJEC, 3-Oct-22: Install additional dependencies for GhostBSD/FreeBSD to build GNUstep documentation
+sudo pkg install texlive-base
+
 echo "Done..."
 exit 0
