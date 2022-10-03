@@ -386,8 +386,37 @@ if [ "true" == "$NEEDSLIBOBJC2" ]; then
 
 fi
 
+# Build/Install GNUstep Make Documentation
+cd ../tools-make/Documentation
+
+if [ "false" == "$INSTALLONLY" ]; then
+	echo "$0: ==== Building GNUstep Make Documentation..."
+	$MAKE clean
+	. $prefix/System/Library/Makefiles/GNUstep.sh
+	$MAKE
+	if [ ! "$?" = "0" ]; then
+			echo "$0: ==== Build GNUstep make Documentation FAILED"
+			exit 1
+	fi
+fi
+
+echo "$0: ==== Installing GNUstep Make Documentation..."
+if [ "$UNAME" == "MINGW64_NT" ] ; then
+# Switch MSYS to use emulated symbolic links so that tar can create files with dangling links during make install
+   MSYS=winsymlinks:lnk ; export MSYS
+fi
+if [ "true" == "$NEEDSROOT" ]; then
+   ${SUDO} -u root ./install.sh $prefix $MAKE
+else
+   $MAKE install
+fi
+if [ "$UNAME" == "MINGW64_NT" ] ; then
+# Switch MSYS to use native (real) symbolic links for building and avoiding .lnk files
+   MSYS=winsymlinks:nativestrict ; export MSYS
+fi
+
 # Build/Install GNUstep Base (Foundation)
-cd ../libs-base
+cd ../../libs-base
 
 if [ "false" == "$INSTALLONLY" ]; then
 	echo "$0: ==== Building GNUstep Base (Foundation)..."
@@ -415,8 +444,37 @@ if [ "$UNAME" == "MINGW64_NT" ] ; then
    MSYS=winsymlinks:nativestrict ; export MSYS
 fi
 
+# Build/Install GNUstep Base (Foundation) Documentation
+cd ../libs-base/Documentation
+
+if [ "false" == "$INSTALLONLY" ]; then
+	echo "$0: ==== Building GNUstep Base (Foundation) Documentation..."
+	$MAKE clean
+	. $prefix/System/Library/Makefiles/GNUstep.sh
+	$MAKE
+	if [ ! "$?" = "0" ]; then
+			echo "$0: ==== Build GNUstep Base (Foundation) Documentation FAILED"
+			exit 1
+	fi
+fi
+
+echo "$0: ==== Installing GNUstep Base (Foundation) Documentation..."
+if [ "$UNAME" == "MINGW64_NT" ] ; then
+# Switch MSYS to use emulated symbolic links so that tar can create files with dangling links during make install
+   MSYS=winsymlinks:lnk ; export MSYS
+fi
+if [ "true" == "$NEEDSROOT" ]; then
+   ${SUDO} -u root ./install.sh $prefix $MAKE
+else
+   $MAKE install
+fi
+if [ "$UNAME" == "MINGW64_NT" ] ; then
+# Switch MSYS to use native (real) symbolic links for building and avoiding .lnk files
+   MSYS=winsymlinks:nativestrict ; export MSYS
+fi
+
 # Build/Install GNUstep CoreBase (Core Foundation)
-cd ../libs-corebase
+cd ../../libs-corebase
 
 if [ "false" == "$INSTALLONLY" ]; then
 	echo "$0: ==== Building GNUstep CoreBase (Core Foundation)..."

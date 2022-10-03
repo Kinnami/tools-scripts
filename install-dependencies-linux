@@ -51,6 +51,11 @@ install_debian()
 #			https://help.ubuntu.com/community/GnuTLS
 	sudo apt-get --yes --force-yes install gnutls-bin
 
+# CJEC, 3-Oct-22: Install required tools to build GNUstep documentation
+#			make install cannot find makeinfo, latex
+	sudo apt-get --yes --force-yes install texinfo
+	sudo apt-get --yes --force-yes install texlive-latex-recommended
+
     echo "-------"
     echo "Done..."
 }
