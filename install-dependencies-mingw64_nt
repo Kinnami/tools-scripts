@@ -54,5 +54,10 @@ pacman --noconfirm -S cmake
 pacman --noconfirm -S nano
 pacman --noconfirm -S asciidoc
 
+# CJEC, 3-Oct-22: Install required tools to build GNUstep documentation
+#			make install cannot find makeinfo, latex
+echo "7) tools building documentation"
+pacman --noconfirm -S mingw-w64-x86_64-texlive-latex-recommended
+
 echo "Done."
 # echo "Don't forget to run /mingw64_shell.cmd -mingw64 to create a new session to build in."
