@@ -103,6 +103,11 @@ fi
 
 # Check if we are compiling under windows. Must not use MSYS shell
 UNAME=`uname | cut -d'-' -f1`
+FULL_UNAME=`uname -a | grep android`
+IS_ANDROID="false"
+# When running on Android, we don't have access to the /usr directory,
+# so we need to use ~/../usr as a substitute.
+BASE_USR_DIR="/"
 if [ "$UNAME" == "MSYS_NT" ] ; then
    echo "$0: Cannot build in an MSYS shell. Switch to a MINGW64 shell and restart"
    exit 1
@@ -122,7 +127,10 @@ else
    if [ "$UNAME" == "FreeBSD" ] ; then
       CPUS=`sysctl -n hw.ncpu`
    else
-      if [ "$UNAME" == "Linux" ] ; then
+       if [ "$UNAME" == "Linux" ] ; then
+	   if [[ "$FULL_UNAME" == *"android"* ]] ; then
+	       IS_ANDROID="true"
+	   fi
          CPUS=`nproc`
 	  else
 	     echo "$0: Unknown platform "$UNAME". Needs porting?"
@@ -139,11 +147,21 @@ then
    make_flags="--disable-importing-config-file"
 fi
 
+# If we're installing on Android, then we cannot use root,
+# and we need to change the base installation location, as places
+# such as /usr/local are not available without sudo access, which
+# a non-rooted Android device cannot provide.
+if [ "$IS_ANDROID" == "true" ]; then
+    export CFLAGS="-DFNDELAY=O_NDELAY ${CFLAGS}"
+    BASE_USR_DIR="$HOME/../"
+    unset NEEDSROOT
+fi
+
 if gmake -v >/dev/null 2>&1
 then
-  export MAKE="gmake -j${CPUS}"
+    export MAKE="gmake -j${CPUS}"
 else
-  export MAKE="make -j${CPUS}"
+    export MAKE="make -j${CPUS}"
 fi
 
 echo "$0: ==== compile-all in "`pwd`
@@ -161,12 +179,12 @@ fi
 
 # C flags for GCC, MINGW64
 if [ "$CC" == "gcc" ] ; then
-   export CFLAGS="-I/usr/local/include -fstrict-aliasing -fno-omit-frame-pointer"
+   export CFLAGS="-I${BASE_USR_DIR}/usr/local/include -fstrict-aliasing -fno-omit-frame-pointer"
 fi
 
 # C flags for CLANG, libobcj4.so, blocks. Note: -fobjc-nonfragile-abi generates compiler warnings on FreeBSD. Do we need it on Linux?
 if [ "$CC" == "clang" ] ; then
-   export CFLAGS="-I/usr/local/include -fblocks ${CFLAGS}"
+   export CFLAGS="-I${BASE_USR_DIR}/usr/local/include -fblocks ${CFLAGS}"
 fi
 
 # C++ flags
@@ -194,20 +212,20 @@ if [ "false" == "$INSTALLONLY" ]; then
 	   echo "$0: ==== BUILDING WITH CLANG"
 	   export RUNTIME_VERSION=gnustep-2.0
 	   if [ "$UNAME" == "FreeBSD" ] ; then
-		  export LD=/usr/local/bin/ld.gold
+		  export LD=${BASE_USR_DIR}/usr/local/bin/ld.gold
 # Assume the presence of libdispatch if we are using clang and libobjc2 (libobjc.so.4.x.) Specifying it directly make configure report that the C compiler does not work
-		  export LDFLAGS="-fuse-ld=${LD} -L/usr/local/lib"
+		  export LDFLAGS="-fuse-ld=${LD} -L${BASE_USR_DIR}/usr/local/lib"
 		  export PKG_CONFIG=/usr/local/bin/pkgconf
 	   else
-		  if [ "$UNAME" == "Linux" ] ; then
-			 export LD=/usr/bin/ld.gold
-# Can't link with libdispatch until we've built it
-			 export LDFLAGS="-fuse-ld=${LD} -L/usr/local/lib"
-			 export PKG_CONFIG_PATH=/usr/local/lib/pkgconfig
-		  else
-			 echo "$0: Unknown platform "$UNAME". Needs porting?"
-			 exit 1
-		  fi
+	       if [ "$UNAME" == "Linux" ] ; then
+		   export LD=${BASE_USR_DIR}/usr/bin/ld.gold
+                   # Can't link with libdispatch until we've built it
+		   export LDFLAGS="-fuse-ld=${LD} -L/usr/local/lib"
+		   export PKG_CONFIG_PATH=${BASE_USR_DIR}/usr/local/lib/pkgconfig
+	       else
+		   echo "$0: Unknown platform "$UNAME". Needs porting?"
+		   exit 1
+	       fi
 	   fi
 	   echo "$0: CFLAGS: "$CFLAGS
 	   echo "$0: CXXFLAGS: "$CXXFLAGS
@@ -282,7 +300,11 @@ if [ "true" == "$NEEDSLIBOBJC2" ]; then
 	   rm -rf build
 	   mkdir build
 	   cd build
-	   cmake .. -DCMAKE_C_COMPILER=${CC} -DCMAKE_CXX_COMPILER=${CXX} -DCMAKE_BUILD_TYPE=Release -DUSE_GOLD_LINKER=YES
+	   # If we're on Android, we need to change the default directory it'll install to.
+	   if  [ "$IS_ANDROID" == "true" ] ; then
+	       IF_ANDROID_CHANGE_INSTALL_DIR_FLAG="-DCMAKE_INSTALL_PREFIX=${BASE_USR_DIR}/usr/local"
+	   fi
+	   cmake $IF_ANDROID_CHANGE_INSTALL_DIR_FLAG .. -DCMAKE_C_COMPILER=${CC} -DCMAKE_CXX_COMPILER=${CXX} -DCMAKE_BUILD_TYPE=Release -DUSE_GOLD_LINKER=YES 
 	   $MAKE
 	   if [ ! "$?" = "0" ]; then
 		  echo "$0: ==== Build libdispatch FAILED"
@@ -311,8 +333,8 @@ if [ "true" == "$NEEDSLIBOBJC2" ]; then
    if [ "$UNAME" == "Linux" ] ; then
 # After installing libdispatch, link everything else with it.
 # Note: When building on Raspbian PiOS (32 bit or 64 bit,) libdispatch.so and libBlocksRuntime.so are installed in a
-# CPU architecture-specific subdireectory of /usr/local/lib/. Need symlinks to the binaries
-	 export LDFLAGS="-fuse-ld=${LD} -L/usr/local/lib -ldispatch"
+       # CPU architecture-specific subdireectory of /usr/local/lib/. Need symlinks to the binaries
+       export LDFLAGS="-fuse-ld=${LD} -L${BASE_USR_DIR}/usr/local/lib -ldispatch"
    fi
    
 # Build/Install libobjc2
@@ -323,6 +345,7 @@ if [ "true" == "$NEEDSLIBOBJC2" ]; then
 	   rm -rf build
 	   mkdir build
 	   cd build
+	   echo "cmake ../ -DCMAKE_C_COMPILER=$CC -DCMAKE_CXX_COMPILER=$CXX - DCMAKE_ASM_COMPILER=$CC -DTESTS=OFF"
 	   cmake ../ -DCMAKE_C_COMPILER=$CC -DCMAKE_CXX_COMPILER=$CXX -DCMAKE_ASM_COMPILER=$CC -DTESTS=OFF
 	   cmake --build .
 	   if [ ! "$?" = "0" ]; then
@@ -395,8 +418,9 @@ if [ "false" == "$INSTALLONLY" ]; then
 	. $prefix/System/Library/Makefiles/GNUstep.sh
 	$MAKE
 	if [ ! "$?" = "0" ]; then
-			echo "$0: ==== Build GNUstep make Documentation FAILED"
-			exit 1
+	    echo "$0: ==== Build GNUstep make Documentation FAILED"
+	    # Commenting this out, don't want it blocking.
+#			exit 1
 	fi
 fi
 
@@ -453,8 +477,9 @@ if [ "false" == "$INSTALLONLY" ]; then
 	. $prefix/System/Library/Makefiles/GNUstep.sh
 	$MAKE
 	if [ ! "$?" = "0" ]; then
-			echo "$0: ==== Build GNUstep Base (Foundation) Documentation FAILED"
-			exit 1
+	    echo "$0: ==== Build GNUstep Base (Foundation) Documentation FAILED"
+	    # Temporarily commenting out the crash here.
+	    # exit 1
 	fi
 fi
 
@@ -477,13 +502,17 @@ fi
 cd ../../libs-corebase
 
 if [ "false" == "$INSTALLONLY" ]; then
-	echo "$0: ==== Building GNUstep CoreBase (Core Foundation)..."
+    echo "$0: ==== Building GNUstep CoreBase (Core Foundation)..."
 	$MAKE GNUSTEP_INSTALLATION_DOMAIN=SYSTEM distclean
 	. $prefix/System/Library/Makefiles/GNUstep.sh
-# FreeBSD: Make sure that the GNUstep Objective C header files are in front any others
-# Linux: Make sure that ICU header files for Linux can be found
-	CFLAGS="-I/usr/local/GNUstep/Local/Library/Headers -I/usr/local/include" ./configure
+	# FreeBSD: Make sure that the GNUstep Objective C header files are in front any others
+	if [ "true" == "$IS_ANDROID" ]; then
+	    ANDROID_ZONEINFO_DIR_FLAG="--with-zoneinfo=/system/usr/share/zoneinfo"
+	fi
+	# Linux: Make sure that ICU header files for Linux can be found
+	CFLAGS="-I${prefix}/Local/Library/Headers -I${BASE_USR_DIR}/usr/local/include" LDFLAGS="-L${prefix}/Local/Library/Libraries" ./configure $ANDROID_ZONEINFO_DIR_FLAG
 	$MAKE GNUSTEP_INSTALLATION_DOMAIN=SYSTEM debug=yes
+	echo "zoneinfo flag is ${ANDROID_ZONEINFO_DIR_FLAG}"
 	if [ ! "$?" = "0" ]; then
 		echo "$0: ==== Build GNUstep CoreBase (Core Foundation) FAILED"
 		exit 1
