@@ -101,6 +101,9 @@ else
 	fi
 fi
 
+# By default, only build/install the documentation on Linux, but not Linux on Android
+INSTALLDOC="false"
+
 # Check if we are compiling under windows. Must not use MSYS shell
 UNAME=`uname | cut -d'-' -f1`
 FULL_UNAME=`uname -a | grep android`
@@ -130,6 +133,8 @@ else
        if [ "$UNAME" == "Linux" ] ; then
 	   if [[ "$FULL_UNAME" == *"android"* ]] ; then
 	       IS_ANDROID="true"
+	   else
+	       INSTALLDOC="true"
 	   fi
          CPUS=`nproc`
 	  else
@@ -167,6 +172,11 @@ fi
 echo "$0: ==== compile-all in "`pwd`
 if [ "true" == "$INSTALLONLY" ]; then
 	echo "$0: NOT BUILDING. Installing only at path defined by GNUSTEP_MAKEFILES "$GNUSTEP_MAKEFILES
+fi
+if [ "true" == "$INSTALLDOC" ]; then
+	echo "$0: Installing GNUstep documentation at path defined by GNUSTEP_MAKEFILES "$GNUSTEP_MAKEFILES
+else
+	echo "$0: NOT INSTALLING GNUstep DOCUMENTATION"
 fi
 echo "$0: Using C compiler $CC"
 echo "$0: Using C++ compiler $CXX"
@@ -412,31 +422,32 @@ fi
 # Build/Install GNUstep Make Documentation
 cd ../tools-make/Documentation
 
-if [ "false" == "$INSTALLONLY" ]; then
-	echo "$0: ==== Building GNUstep Make Documentation..."
-	$MAKE clean
-	. $prefix/System/Library/Makefiles/GNUstep.sh
-	$MAKE
-	if [ ! "$?" = "0" ]; then
-	    echo "$0: ==== Build GNUstep make Documentation FAILED"
-	    # Commenting this out, don't want it blocking.
-#			exit 1
+if [ "true" == "$INSTALLDOC" ]; then
+	if [ "false" == "$INSTALLONLY" ]; then
+		echo "$0: ==== Building GNUstep Make Documentation..."
+		$MAKE clean
+		. $prefix/System/Library/Makefiles/GNUstep.sh
+		$MAKE
+		if [ ! "$?" = "0" ]; then
+			echo "$0: ==== Build GNUstep make Documentation FAILED"
+			exit 1
+		fi
 	fi
-fi
 
-echo "$0: ==== Installing GNUstep Make Documentation..."
-if [ "$UNAME" == "MINGW64_NT" ] ; then
+	echo "$0: ==== Installing GNUstep Make Documentation..."
+	if [ "$UNAME" == "MINGW64_NT" ] ; then
 # Switch MSYS to use emulated symbolic links so that tar can create files with dangling links during make install
-   MSYS=winsymlinks:lnk ; export MSYS
-fi
-if [ "true" == "$NEEDSROOT" ]; then
-   ${SUDO} -u root ./install.sh $prefix $MAKE
-else
-   $MAKE install
-fi
-if [ "$UNAME" == "MINGW64_NT" ] ; then
+	   MSYS=winsymlinks:lnk ; export MSYS
+	fi
+	if [ "true" == "$NEEDSROOT" ]; then
+	   ${SUDO} -u root ./install.sh $prefix $MAKE
+	else
+	   $MAKE install
+	fi
+	if [ "$UNAME" == "MINGW64_NT" ] ; then
 # Switch MSYS to use native (real) symbolic links for building and avoiding .lnk files
-   MSYS=winsymlinks:nativestrict ; export MSYS
+	   MSYS=winsymlinks:nativestrict ; export MSYS
+	fi
 fi
 
 # Build/Install GNUstep Base (Foundation)
@@ -471,31 +482,32 @@ fi
 # Build/Install GNUstep Base (Foundation) Documentation
 cd ../libs-base/Documentation
 
-if [ "false" == "$INSTALLONLY" ]; then
-	echo "$0: ==== Building GNUstep Base (Foundation) Documentation..."
-	$MAKE clean
-	. $prefix/System/Library/Makefiles/GNUstep.sh
-	$MAKE
-	if [ ! "$?" = "0" ]; then
-	    echo "$0: ==== Build GNUstep Base (Foundation) Documentation FAILED"
-	    # Temporarily commenting out the crash here.
-	    # exit 1
+if [ "true" == "$INSTALLDOC" ]; then
+	if [ "false" == "$INSTALLONLY" ]; then
+		echo "$0: ==== Building GNUstep Base (Foundation) Documentation..."
+		$MAKE clean
+		. $prefix/System/Library/Makefiles/GNUstep.sh
+		$MAKE
+		if [ ! "$?" = "0" ]; then
+			echo "$0: ==== Build GNUstep Base (Foundation) Documentation FAILED"
+			exit 1
+		fi
 	fi
-fi
 
-echo "$0: ==== Installing GNUstep Base (Foundation) Documentation..."
-if [ "$UNAME" == "MINGW64_NT" ] ; then
+	echo "$0: ==== Installing GNUstep Base (Foundation) Documentation..."
+	if [ "$UNAME" == "MINGW64_NT" ] ; then
 # Switch MSYS to use emulated symbolic links so that tar can create files with dangling links during make install
-   MSYS=winsymlinks:lnk ; export MSYS
-fi
-if [ "true" == "$NEEDSROOT" ]; then
-   ${SUDO} -u root ./install.sh $prefix $MAKE
-else
-   $MAKE install
-fi
-if [ "$UNAME" == "MINGW64_NT" ] ; then
+	   MSYS=winsymlinks:lnk ; export MSYS
+	fi
+	if [ "true" == "$NEEDSROOT" ]; then
+	   ${SUDO} -u root ./install.sh $prefix $MAKE
+	else
+	   $MAKE install
+	fi
+	if [ "$UNAME" == "MINGW64_NT" ] ; then
 # Switch MSYS to use native (real) symbolic links for building and avoiding .lnk files
-   MSYS=winsymlinks:nativestrict ; export MSYS
+	   MSYS=winsymlinks:nativestrict ; export MSYS
+	fi
 fi
 
 # Build/Install GNUstep CoreBase (Core Foundation)
