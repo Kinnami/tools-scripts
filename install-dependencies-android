@@ -1,0 +1,63 @@
+#!/bin/bash
+
+install_android()
+{
+    echo "NOTE: Make sure you have done apt-get update and apt-get upgrade prior to running this script."
+    echo "Installing Android dependencies"
+    echo "-------"
+
+    apt-get --yes --force-yes install gobjc 
+    apt-get --yes --force-yes install gobjc++
+    apt-get --yes --force-yes install clang
+    apt-get --yes --force-yes install libjpeg-dev 
+    apt-get --yes --force-yes install libtiff-dev 
+    apt-get --yes --force-yes install libpng-dev 
+    apt-get --yes --force-yes install libicns-dev
+    apt-get --yes --force-yes install libmagickcore-dev
+    apt-get --yes --force-yes install libxml2-dev 
+    apt-get --yes --force-yes install libxslt-dev 
+    apt-get --yes --force-yes install libgnutls-dev
+    apt-get --yes --force-yes install libffi-dev 
+    apt-get --yes --force-yes install libicu-dev 
+    apt-get --yes --force-yes install libcairo2-dev
+    apt-get --yes --force-yes install libxft-dev
+    apt-get --yes --force-yes install libavahi-client-dev
+    apt-get --yes --force-yes install flite-dev
+    apt-get --yes --force-yes install libxt-dev
+    apt-get --yes --force-yes install libportaudio-dev
+    apt-get --yes --force-yes install wmaker
+    apt-get --yes --force-yes install portaudio19-dev
+    apt-get --yes --force-yes install make
+    apt-get --yes --force-yes install cmake
+    apt-get --yes --force-yes install gnutls-dev
+    apt-get --yes --force-yes install libblocksruntime-dev
+    apt-get --yes --force-yes install pocketsphinx
+    apt-get --yes --force-yes install pocketsphinx-en-us
+    apt-get --yes --force-yes install libpocketsphinx-dev
+    apt-get --yes --force-yes install libsphinxbase-dev
+    apt-get --yes --force-yes install sphinxbase-utils
+    apt-get --yes --force-yes install sphinxtrain
+    apt-get --yes --force-yes install libssl-dev
+    apt-get --yes --force-yes install freeglut3-dev
+
+# CJEC, 14-Mar-22: Install additional dependencies for Ubuntu 20.04 build with CLANG
+#					defined in https://github.com/plaurent/gnustep-build.git /ubuntu-20.04-clang-10.0-runtime-2.0/GNUstep-buildon-ubuntu2004.sh
+	apt -y install build-essential wget git subversion \
+		libgnutls28-dev libkqueue-dev libpthread-workqueue-dev autoconf libtool \
+		libcairo-dev libx11-dev libxrandr-dev \
+		curl
+# CJEC, 26-Sep-22: Install GnuTLS runtime required for TLS support in GNUstep Foundation.
+#			make check fails for libs-base without this.
+#			https://help.ubuntu.com/community/GnuTLS
+	apt-get --yes --force-yes install gnutls-bin
+
+# CJEC, 3-Oct-22: Install required tools to build GNUstep documentation
+#			make install cannot find makeinfo, latex
+        apt-get --yes --force-yes install texinfo
+	apt-get --yes --force-yes install texlive-latex-recommended
+
+    echo "-------"
+    echo "Done..."
+}
+
+install_android
