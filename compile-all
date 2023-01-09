@@ -106,7 +106,7 @@ INSTALLDOC="false"
 
 # Check if we are compiling under windows. Must not use MSYS shell
 UNAME=`uname | cut -d'-' -f1`
-FULL_UNAME=`uname -a | grep android`
+FULL_UNAME=`uname -a | grep Android`
 IS_ANDROID="false"
 # When running on Android, we don't have access to the /usr directory,
 # so we need to use ~/../usr as a substitute.
@@ -131,7 +131,7 @@ else
       CPUS=`sysctl -n hw.ncpu`
    else
        if [ "$UNAME" == "Linux" ] ; then
-	   if [[ "$FULL_UNAME" == *"android"* ]] ; then
+	   if [[ "$FULL_UNAME" == *"Android"* ]] ; then
 	       IS_ANDROID="true"
 	   else
 	       INSTALLDOC="true"
