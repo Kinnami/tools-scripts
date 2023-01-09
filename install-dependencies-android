@@ -10,41 +10,51 @@ install_android()
     apt-get --yes --force-yes install gobjc++
     apt-get --yes --force-yes install clang
     apt-get --yes --force-yes install libjpeg-dev 
-    apt-get --yes --force-yes install libtiff-dev 
-    apt-get --yes --force-yes install libpng-dev 
-    apt-get --yes --force-yes install libicns-dev
-    apt-get --yes --force-yes install libmagickcore-dev
-    apt-get --yes --force-yes install libxml2-dev 
-    apt-get --yes --force-yes install libxslt-dev 
-    apt-get --yes --force-yes install libgnutls-dev
-    apt-get --yes --force-yes install libffi-dev 
-    apt-get --yes --force-yes install libicu-dev 
-    apt-get --yes --force-yes install libcairo2-dev
-    apt-get --yes --force-yes install libxft-dev
-    apt-get --yes --force-yes install libavahi-client-dev
-    apt-get --yes --force-yes install flite-dev
-    apt-get --yes --force-yes install libxt-dev
-    apt-get --yes --force-yes install libportaudio-dev
-    apt-get --yes --force-yes install wmaker
-    apt-get --yes --force-yes install portaudio19-dev
-    apt-get --yes --force-yes install make
-    apt-get --yes --force-yes install cmake
-    apt-get --yes --force-yes install gnutls-dev
-    apt-get --yes --force-yes install libblocksruntime-dev
-    apt-get --yes --force-yes install pocketsphinx
-    apt-get --yes --force-yes install pocketsphinx-en-us
-    apt-get --yes --force-yes install libpocketsphinx-dev
-    apt-get --yes --force-yes install libsphinxbase-dev
-    apt-get --yes --force-yes install sphinxbase-utils
-    apt-get --yes --force-yes install sphinxtrain
-    apt-get --yes --force-yes install libssl-dev
-    apt-get --yes --force-yes install freeglut3-dev
+    apt-get --yes --force-yes install libtiff # Changed from -dev
+    apt-get --yes --force-yes install libpng # Changed from -dev 
+    apt-get --yes --force-yes install libicns-dev # Works
+    apt-get --yes --force-yes install libmagickcore-dev # Works
+    apt-get --yes --force-yes install libxml2 # Changed from -dev
+    apt-get --yes --force-yes install libxslt # Changed from -dev
+    apt-get --yes --force-yes install libgnutls # Changed from -dev
+    apt-get --yes --force-yes install libffi # Changed from -dev
+    apt-get --yes --force-yes install libicu # Changed from -dev 
+    apt-get --yes --force-yes install libcairo2-dev # Does not exist on Android.
+    apt-get --yes --force-yes install libxft # Changed from -dev
+    apt-get --yes --force-yes install libavahi-client-dev # Does not exist on Android.
+    apt-get --yes --force-yes install flite-dev # Does not exist on Android.
+    apt-get --yes --force-yes install libxt # Changed from -dev
+    apt-get --yes --force-yes install libportaudio-dev # Does not exist on Android.
+    apt-get --yes --force-yes install wmaker # Works
+    apt-get --yes --force-yes install portaudio # Changed from portaudio19-dev
+    apt-get --yes --force-yes install make # Works
+    apt-get --yes --force-yes install cmake # Works
+    apt-get --yes --force-yes install gnutls # Changed from -dev
+    apt-get --yes --force-yes install libblocksruntime # Changed from -dev
+    apt-get --yes --force-yes install pocketsphinx # Does not exist on Android
+    apt-get --yes --force-yes install pocketsphinx-en-us # Does not exist on Android
+    apt-get --yes --force-yes install libpocketsphinx-dev # Does not exist on Android
+    apt-get --yes --force-yes install libsphinxbase-dev # Does not exist on Android
+    apt-get --yes --force-yes install sphinxbase-utils # Does not exist on Android
+    apt-get --yes --force-yes install sphinxtrain # Does not exist on Android
+    apt-get --yes --force-yes install libssl-dev # Doesn't exist, but there are openssl variants?
+    apt-get --yes --force-yes install freeglut # Changed from freeglut3-dev
 
 # CJEC, 14-Mar-22: Install additional dependencies for Ubuntu 20.04 build with CLANG
-#					defined in https://github.com/plaurent/gnustep-build.git /ubuntu-20.04-clang-10.0-runtime-2.0/GNUstep-buildon-ubuntu2004.sh
+    #					defined in https://github.com/plaurent/gnustep-build.git /ubuntu-20.04-clang-10.0-runtime-2.0/GNUstep-buildon-ubuntu2004.sh
+
+    # From this list, we have:
+    # build-essential, wget, git, and subversion all work.
+    # libgnutls28-dev -> libgnutls
+    # libkqueue-dev and libpthread-workqueue-dev don't exist.
+    # autoconf and libtool work.
+    # libcairo-dev -> libcairo
+    # libx11-dev -> libx11
+    # libxrandr-dev -> libxrandr
+    # And finally, curl works.
 	apt -y install build-essential wget git subversion \
-		libgnutls28-dev libkqueue-dev libpthread-workqueue-dev autoconf libtool \
-		libcairo-dev libx11-dev libxrandr-dev \
+		libgnutls libkqueue-dev libpthread-workqueue-dev autoconf libtool \
+		libcairo libx11 libxrandr \
 		curl
 # CJEC, 26-Sep-22: Install GnuTLS runtime required for TLS support in GNUstep Foundation.
 #			make check fails for libs-base without this.
