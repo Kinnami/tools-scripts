@@ -1,10 +1,15 @@
 #!/bin/bash
 #
 # Note: FreeBSD installs bash at /usr/local/bin, so this script
-# requires a symbolc link to that location.
+# 		requires a symbolc link to that location.
 #
 # Note: Windows 10 NFS Client fails after a while when executing
-# this script. Instead, use Windows SMBFS (Windows network client).
+# 		this script. Instead, use Windows SMBFS (Windows network
+#		client).
+#
+# Note: This script picks up existing CFLAGS, LIBS and LDFLAGS in the
+#		environment which can be used to override what is defined
+#		here. See tools-make/configure --help for details
 #
 # Run this script as root to configure, compile and install
 # libobjc.so.4.x, libdispatch.so, (if needed by the platform,)
@@ -57,20 +62,35 @@ SUDO='sudo LD_LIBRARY_PATH=$LD_LIBRARY_PATH'
 KERNEL=`uname -s | awk '{print tolower($0)}'`
 scriptsdir="`pwd`/tools-scripts"
 
+UNAME=`uname | cut -d'-' -f1`
+FULL_UNAME=`uname -a | grep Android`
+if [[ "$FULL_UNAME" == *"Android"* ]] ; then
+   IS_ANDROID="true"
+else
+   IS_ANDROID="false"
+fi
+
+# Determine where to install GNUstep
 if [ "$1" != "" ]; then
-   prefix="$1"
+   gnustep_prefix="$1"
 else
 # Prefer /usr/local/GNUstep to /usr/GNUstep to conform better to UNIX FHS
 #  https://en.wikipedia.org/wiki/Filesystem_Hierarchy_Standard .
 #  Note: Required for modern macOS, for which /usr/ is read-only
-   prefix="/usr/local/GNUstep"
+#  Note: Android forbids access to /usr and instead expects to use $PREFIX
+   if [ "$IS_ANDROID" == "true" ]; then
+      gnustep_prefix="${PREFIX}/local/GNUstep"
+   else
+      gnustep_prefix="/usr/local/GNUstep"
+   fi
 fi
 
+# Determine whether to build and install, or just install
 if [ "$5" == "install-only" ]; then
     INSTALLONLY="true"
-	echo "$0: Not using supplied prefix "$prefix
-	prefix=$GNUSTEP_MAKEFILES | sed 's|\(/.*/GNUstep\).*|\1|'
-	echo "$0: Installing using prefix "$prefix" derived from GNUSTEP_MAKEFILES environment variable"
+	echo "$0: Not using supplied prefix "$gnustep_prefix
+	gnustep_prefix=$GNUSTEP_MAKEFILES | sed 's|\(/.*/GNUstep\).*|\1|'
+	echo "$0: Installing using prefix "$gnustep_prefix" derived from GNUSTEP_MAKEFILES environment variable"
 	read -p "$0: Continue: ARE YOU SURE? Press <CTRL>-C to abort, <RETURN> to continue... " input
 	if [ "$4" == "base-only" ]; then
 		BASEONLY="true"
@@ -101,28 +121,25 @@ else
 	fi
 fi
 
-# By default, only build/install the documentation on Linux, but not Linux on Android
-INSTALLDOC="false"
-
 # Check if we are compiling under windows. Must not use MSYS shell
-UNAME=`uname | cut -d'-' -f1`
-FULL_UNAME=`uname -a | grep Android`
-IS_ANDROID="false"
 # When running on Android, we don't have access to the /usr directory,
 # so we need to use ~/../usr as a substitute.
-BASE_USR_DIR="/"
 if [ "$UNAME" == "MSYS_NT" ] ; then
    echo "$0: Cannot build in an MSYS shell. Switch to a MINGW64 shell and restart"
    exit 1
 else
    if [ "$UNAME" != "MINGW64_NT" ] ; then
-      if [ ! \( -d $prefix -a -w $prefix \) ] ; then
-         if [ ! \( -d $(basename $prefix) -a -w $(basename $prefix) \) ] ; then
+      if [ ! \( -d $gnustep_prefix -a -w $gnustep_prefix \) ] ; then
+         if [ ! \( -d $(basename $gnustep_prefix) -a -w $(basename $gnustep_prefix) \) ] ; then
             NEEDSROOT="true"
          fi
       fi
    fi
 fi
+
+# Determine how many CPUs for parallel compilation
+# By default, only build/install the documentation on Linux, but not Linux on Android
+INSTALLDOC="false"
 
 if [ "$UNAME" == "MINGW64_NT" ] ; then
    CPUS=`nproc`
@@ -131,12 +148,10 @@ else
       CPUS=`sysctl -n hw.ncpu`
    else
        if [ "$UNAME" == "Linux" ] ; then
-	   if [[ "$FULL_UNAME" == *"Android"* ]] ; then
-	       IS_ANDROID="true"
-	   else
-	       INSTALLDOC="true"
-	   fi
          CPUS=`nproc`
+         if [ "$IS_ANDROID" == "false" ]; then
+            INSTALLDOC="true"
+		 fi
 	  else
 	     echo "$0: Unknown platform "$UNAME". Needs porting?"
 	     exit 1
@@ -146,7 +161,7 @@ fi
 
 # If we are installing into home, then we do not need root...
 if
-   echo $prefix | grep "^/home/"
+   echo $gnustep_prefix | grep "^/home/"
 then
    unset NEEDSROOT
    make_flags="--disable-importing-config-file"
@@ -156,10 +171,18 @@ fi
 # and we need to change the base installation location, as places
 # such as /usr/local are not available without sudo access, which
 # a non-rooted Android device cannot provide.
+# We also must specify some CFLAGS, LIBS,  LDFLAGS to work around differences
+# from Linux
+# Android Termux defines $PREFIX to be the directory that contains the sandboxed /home and /usr directory trees
+# Note: BASE_USR_DIR is the same as $PREFIX/../
 if [ "$IS_ANDROID" == "true" ]; then
-    export CFLAGS="-DFNDELAY=O_NDELAY ${CFLAGS}"
     BASE_USR_DIR="$HOME/../"
+    export CFLAGS="-DFNDELAY=O_NDELAY ${CFLAGS}"
+    export LDFLAGS="${LDFLAGS} -L/system/lib64 -L${BASE_USR_DIR}usr/lib"
+    export LIBS="${LIBS} -landroid -landroid-shmem -l:libicuuc.so.72.1 -l:libicui18n.so.72.1"
     unset NEEDSROOT
+else
+	BASE_USR_DIR="/"
 fi
 
 if gmake -v >/dev/null 2>&1
@@ -189,19 +212,19 @@ fi
 
 # C flags for GCC, MINGW64
 if [ "$CC" == "gcc" ] ; then
-   export CFLAGS="-I${BASE_USR_DIR}/usr/local/include -fstrict-aliasing -fno-omit-frame-pointer"
+   export CFLAGS="-I${BASE_USR_DIR}usr/local/include -fstrict-aliasing -fno-omit-frame-pointer ${CFLAGS}"
 fi
 
 # C flags for CLANG, libobcj4.so, blocks. Note: -fobjc-nonfragile-abi generates compiler warnings on FreeBSD. Do we need it on Linux?
 if [ "$CC" == "clang" ] ; then
-   export CFLAGS="-I${BASE_USR_DIR}/usr/local/include -fblocks ${CFLAGS}"
+   export CFLAGS="-I${BASE_USR_DIR}usr/local/include -fblocks ${CFLAGS}"
 fi
 
 # C++ flags
 export CXXFLAGS="-std=c++11"
 
 # Build/Install GNUstep Make
-echo "$0: Installing GNUstep into ${prefix}"
+echo "$0: Installing GNUstep into ${gnustep_prefix}"
 cd tools-make
 
 if [ "false" == "$INSTALLONLY" ]; then
@@ -214,24 +237,30 @@ if [ "false" == "$INSTALLONLY" ]; then
 	   echo "$0: CFLAGS: "$CFLAGS
 	   echo "$0: CXXFLAGS: "$CXXFLAGS
 	   echo "$0: LDFLAGS: "$LDFLAGS
-	   echo "$0: Configure GNUstep Make command: ./configure --prefix=${prefix} --enable-native-objc-exceptions --with-layout=gnustep $make_flags"
+	   echo "$0: LIBS: "$LIBS
+	   echo "$0: Configure GNUstep Make command: ./configure --prefix=${gnustep_prefix} --enable-native-objc-exceptions --with-layout=gnustep $make_flags"
 
 	   echo "$0: ===="
-	   ./configure --prefix=${prefix} --enable-native-objc-exceptions --with-layout=gnustep ${make_flags}
+	   ./configure --prefix=${gnustep_prefix} --enable-native-objc-exceptions --with-layout=gnustep ${make_flags}
 	else
 	   echo "$0: ==== BUILDING WITH CLANG"
 	   export RUNTIME_VERSION=gnustep-2.0
 	   if [ "$UNAME" == "FreeBSD" ] ; then
-		  export LD=${BASE_USR_DIR}/usr/local/bin/ld.gold
+		  export LD=${BASE_USR_DIR}usr/local/bin/ld.gold
 # Assume the presence of libdispatch if we are using clang and libobjc2 (libobjc.so.4.x.) Specifying it directly make configure report that the C compiler does not work
-		  export LDFLAGS="-fuse-ld=${LD} -L${BASE_USR_DIR}/usr/local/lib"
-		  export PKG_CONFIG=/usr/local/bin/pkgconf
+		  export LDFLAGS="-fuse-ld=${LD} -L${BASE_USR_DIR}usr/local/lib ${LDFLAGS}"
+		  export PKG_CONFIG=${BASE_USR_DIR}usr/local/bin/pkgconf
 	   else
 	       if [ "$UNAME" == "Linux" ] ; then
-		   export LD=${BASE_USR_DIR}/usr/bin/ld.gold
-                   # Can't link with libdispatch until we've built it
-		   export LDFLAGS="-fuse-ld=${LD} -L/usr/local/lib"
-		   export PKG_CONFIG_PATH=${BASE_USR_DIR}/usr/local/lib/pkgconfig
+		   export LD=${BASE_USR_DIR}usr/bin/ld.gold
+# Can't link with libdispatch until we've built it
+		   export LDFLAGS="-fuse-ld=${LD} -L${BASE_USR_DIR}usr/local/lib ${LDFLAGS}"
+		   if [ "$IS_ANDROID" == "true" ]; then
+# Android installs pkgconfig in its own place
+				export PKG_CONFIG_PATH=${BASE_USR_DIR}usr/bin/pkg-config
+		   else
+		   		export PKG_CONFIG_PATH=${BASE_USR_DIR}usr/local/lib/pkgconfig
+		   fi
 	       else
 		   echo "$0: Unknown platform "$UNAME". Needs porting?"
 		   exit 1
@@ -240,8 +269,9 @@ if [ "false" == "$INSTALLONLY" ]; then
 	   echo "$0: CFLAGS: "$CFLAGS
 	   echo "$0: CXXFLAGS: "$CXXFLAGS
 	   echo "$0: LDFLAGS: "$LDFLAGS
-	   echo "$0: ==== Configure GNUstep Make command: ./configure --prefix=${prefix} --with-library-combo=ng-gnu-gnu --enable-objc-arc --enable-native-objc-exceptions --enable-install-ld-so-conf --with-layout=gnustep ${make_flags}"
-	   ./configure --prefix=${prefix} --with-library-combo=ng-gnu-gnu --enable-objc-arc --enable-native-objc-exceptions --enable-install-ld-so-conf --with-layout=gnustep ${make_flags}
+	   echo "$0: LIBS: "$LIBS	   
+	   echo "$0: ==== Configure GNUstep Make command: ./configure --prefix=${gnustep_prefix} --with-library-combo=ng-gnu-gnu --enable-objc-arc --enable-native-objc-exceptions --enable-install-ld-so-conf --with-layout=gnustep ${make_flags}"
+	   ./configure --prefix=${gnustep_prefix} --with-library-combo=ng-gnu-gnu --enable-objc-arc --enable-native-objc-exceptions --enable-install-ld-so-conf --with-layout=gnustep ${make_flags}
 	fi
 	if [ ! "$?" = "0" ]; then
 			echo "$0: ==== Configure GNUstep Make FAILED"
@@ -276,7 +306,7 @@ if [ "$UNAME" == "MINGW64_NT" ] ; then
    MSYS=winsymlinks:nativestrict ; export MSYS
 fi
 
-. $prefix/System/Library/Makefiles/GNUstep.sh
+. $gnustep_prefix/System/Library/Makefiles/GNUstep.sh
 
 if [ "false" == "$INSTALLONLY" ]; then
 	if [ "$UNAME" == "MINGW64_NT" ] ; then
@@ -312,7 +342,7 @@ if [ "true" == "$NEEDSLIBOBJC2" ]; then
 	   cd build
 	   # If we're on Android, we need to change the default directory it'll install to.
 	   if  [ "$IS_ANDROID" == "true" ] ; then
-	       IF_ANDROID_CHANGE_INSTALL_DIR_FLAG="-DCMAKE_INSTALL_PREFIX=${BASE_USR_DIR}/usr/local"
+	       IF_ANDROID_CHANGE_INSTALL_DIR_FLAG="-DCMAKE_INSTALL_PREFIX=${BASE_USR_DIR}usr/local"
 	   fi
 	   cmake $IF_ANDROID_CHANGE_INSTALL_DIR_FLAG .. -DCMAKE_C_COMPILER=${CC} -DCMAKE_CXX_COMPILER=${CXX} -DCMAKE_BUILD_TYPE=Release -DUSE_GOLD_LINKER=YES 
 	   $MAKE
@@ -329,7 +359,7 @@ if [ "true" == "$NEEDSLIBOBJC2" ]; then
 # Switch MSYS to use emulated symbolic links so that tar can create files with dangling links during make install
       MSYS=winsymlinks:lnk ; export MSYS
    fi
-   # Note: libdispatch.so installs in /usr/local/lib/
+   # Note: libdispatch.so installs in ${BASE_USR_DIR}usr/local/lib/
    if [ "true" == "$NEEDSROOT" ]; then
       ${SUDO} -u root -E $MAKE install
       ${SUDO} ldconfig
@@ -343,8 +373,10 @@ if [ "true" == "$NEEDSLIBOBJC2" ]; then
    if [ "$UNAME" == "Linux" ] ; then
 # After installing libdispatch, link everything else with it.
 # Note: When building on Raspbian PiOS (32 bit or 64 bit,) libdispatch.so and libBlocksRuntime.so are installed in a
-       # CPU architecture-specific subdireectory of /usr/local/lib/. Need symlinks to the binaries
-       export LDFLAGS="-fuse-ld=${LD} -L${BASE_USR_DIR}/usr/local/lib -ldispatch"
+# 		CPU architecture-specific subdireectory of ${BASE_USR_DIR}usr/local/lib/.
+#		Need to create symlinks to the binaries by hand.
+# CJEC, 10-Jan-23: TODO: FIXME: Create symlinks to libdispatch.so etc. when building for Raspbian PiOS
+       export LIBS="${LIBS} -ldispatch"
    fi
    
 # Build/Install libobjc2
@@ -365,13 +397,13 @@ if [ "true" == "$NEEDSLIBOBJC2" ]; then
 	   cd ..
 	fi
 	
-   echo "$0: ==== Installing libobjc2 (libobjc.so.4.x)..."
+   echo "$0: ==== Installing libobjc2 (libobjc.so.	4.x)..."
    cd build
    if [ "$UNAME" == "MINGW64_NT" ] ; then
 # Switch MSYS to use emulated symbolic links so that tar can create files with dangling links during make install
       MSYS=winsymlinks:lnk ; export MSYS
    fi
-# Note: libobjc2 (libobjc.so.4.x) installs in $prefix/Local/Library/Libraries/
+# Note: libobjc2 (libobjc.so.4.x) installs in $gnustep_prefix/Local/Library/Libraries/
    if [ "true" == "$NEEDSROOT" ]; then
       ${SUDO} -u root -E $MAKE install
       ${SUDO} ldconfig
@@ -387,8 +419,8 @@ if [ "true" == "$NEEDSLIBOBJC2" ]; then
    cd ../../tools-make
 
 	if [ "false" == "$INSTALLONLY" ]; then
-	   echo "$0: ==== Configure GNUstep Make #2 command: ./configure --prefix=${prefix} --with-library-combo=ng-gnu-gnu --enable-objc-arc --enable-native-objc-exceptions --enable-install-ld-so-conf --with-layout=gnustep ${make_flags}"
-	   ./configure --prefix=${prefix} --with-library-combo=ng-gnu-gnu --enable-objc-arc --enable-native-objc-exceptions --enable-install-ld-so-conf --with-layout=gnustep ${make_flags}
+	   echo "$0: ==== Configure GNUstep Make #2 command: ./configure --prefix=${gnustep_prefix} --with-library-combo=ng-gnu-gnu --enable-objc-arc --enable-native-objc-exceptions --enable-install-ld-so-conf --with-layout=gnustep ${make_flags}"
+	   ./configure --prefix=${gnustep_prefix} --with-library-combo=ng-gnu-gnu --enable-objc-arc --enable-native-objc-exceptions --enable-install-ld-so-conf --with-layout=gnustep ${make_flags}
 	   if [ ! "$?" = "0" ]; then
 		  echo "$0: ==== Configure GNUstep Make #2 FAILED"
 		  exit 1
@@ -415,7 +447,7 @@ if [ "true" == "$NEEDSLIBOBJC2" ]; then
       MSYS=winsymlinks:nativestrict ; export MSYS
    fi
 
-   . $prefix/System/Library/Makefiles/GNUstep.sh
+   . $gnustep_prefix/System/Library/Makefiles/GNUstep.sh
 
 fi
 
@@ -426,7 +458,7 @@ if [ "true" == "$INSTALLDOC" ]; then
 	if [ "false" == "$INSTALLONLY" ]; then
 		echo "$0: ==== Building GNUstep Make Documentation..."
 		$MAKE clean
-		. $prefix/System/Library/Makefiles/GNUstep.sh
+		. $gnustep_prefix/System/Library/Makefiles/GNUstep.sh
 		$MAKE
 		if [ ! "$?" = "0" ]; then
 			echo "$0: ==== Build GNUstep make Documentation FAILED"
@@ -440,7 +472,7 @@ if [ "true" == "$INSTALLDOC" ]; then
 	   MSYS=winsymlinks:lnk ; export MSYS
 	fi
 	if [ "true" == "$NEEDSROOT" ]; then
-	   ${SUDO} -u root ./install.sh $prefix $MAKE
+	   ${SUDO} -u root ./install.sh $gnustep_prefix $MAKE
 	else
 	   $MAKE install
 	fi
@@ -456,7 +488,7 @@ cd ../../libs-base
 if [ "false" == "$INSTALLONLY" ]; then
 	echo "$0: ==== Building GNUstep Base (Foundation)..."
 	$MAKE GNUSTEP_INSTALLATION_DOMAIN=SYSTEM distclean
-	. $prefix/System/Library/Makefiles/GNUstep.sh
+	. $gnustep_prefix/System/Library/Makefiles/GNUstep.sh
 	$MAKE GNUSTEP_INSTALLATION_DOMAIN=SYSTEM debug=yes
 	if [ ! "$?" = "0" ]; then
 			echo "$0: ==== Build GNUstep Base (Foundation) FAILED"
@@ -470,7 +502,7 @@ if [ "$UNAME" == "MINGW64_NT" ] ; then
    MSYS=winsymlinks:lnk ; export MSYS
 fi
 if [ "true" == "$NEEDSROOT" ]; then
-   ${SUDO} -u root ./install.sh $prefix $MAKE
+   ${SUDO} -u root ./install.sh $gnustep_prefix $MAKE
 else
    $MAKE GNUSTEP_INSTALLATION_DOMAIN=SYSTEM install
 fi
@@ -486,7 +518,7 @@ if [ "true" == "$INSTALLDOC" ]; then
 	if [ "false" == "$INSTALLONLY" ]; then
 		echo "$0: ==== Building GNUstep Base (Foundation) Documentation..."
 		$MAKE clean
-		. $prefix/System/Library/Makefiles/GNUstep.sh
+		. $gnustep_prefix/System/Library/Makefiles/GNUstep.sh
 		$MAKE
 		if [ ! "$?" = "0" ]; then
 			echo "$0: ==== Build GNUstep Base (Foundation) Documentation FAILED"
@@ -500,7 +532,7 @@ if [ "true" == "$INSTALLDOC" ]; then
 	   MSYS=winsymlinks:lnk ; export MSYS
 	fi
 	if [ "true" == "$NEEDSROOT" ]; then
-	   ${SUDO} -u root ./install.sh $prefix $MAKE
+	   ${SUDO} -u root ./install.sh $gnustep_prefix $MAKE
 	else
 	   $MAKE install
 	fi
@@ -516,13 +548,13 @@ cd ../../libs-corebase
 if [ "false" == "$INSTALLONLY" ]; then
     echo "$0: ==== Building GNUstep CoreBase (Core Foundation)..."
 	$MAKE GNUSTEP_INSTALLATION_DOMAIN=SYSTEM distclean
-	. $prefix/System/Library/Makefiles/GNUstep.sh
+	. $gnustep_prefix/System/Library/Makefiles/GNUstep.sh
 	# FreeBSD: Make sure that the GNUstep Objective C header files are in front any others
 	if [ "true" == "$IS_ANDROID" ]; then
 	    ANDROID_ZONEINFO_DIR_FLAG="--with-zoneinfo=/system/usr/share/zoneinfo"
 	fi
 	# Linux: Make sure that ICU header files for Linux can be found
-	CFLAGS="-I${prefix}/Local/Library/Headers -I${BASE_USR_DIR}/usr/local/include" LDFLAGS="-L${prefix}/Local/Library/Libraries" ./configure $ANDROID_ZONEINFO_DIR_FLAG
+	CFLAGS="-I${gnustep_prefix}/Local/Library/Headers -I${BASE_USR_DIR}usr/local/include" LDFLAGS="-L${gnustep_prefix}/Local/Library/Libraries" ./configure $ANDROID_ZONEINFO_DIR_FLAG
 	$MAKE GNUSTEP_INSTALLATION_DOMAIN=SYSTEM debug=yes
 	echo "zoneinfo flag is ${ANDROID_ZONEINFO_DIR_FLAG}"
 	if [ ! "$?" = "0" ]; then
@@ -554,9 +586,9 @@ if [ "false" == "$BASEONLY" ]; then
 	if [ "false" == "$INSTALLONLY" ]; then
 		echo "$0: ==== Building GNUstep GUI (Cocoa AppKit)..."
 		$MAKE GNUSTEP_INSTALLATION_DOMAIN=SYSTEM distclean
-		. $prefix/System/Library/Makefiles/GNUstep.sh
+		. $gnustep_prefix/System/Library/Makefiles/GNUstep.sh
 		./configure --enable-imagemagick
-# FreeBSD requires a symbolic link in /usr/local/include: ln -s ImageMagick-7/MagicCore magick
+# FreeBSD requires a symbolic link in ${BASE_USR_DIR}usr/local/include: ln -s ImageMagick-7/MagicCore magick
 		$MAKE GNUSTEP_INSTALLATION_DOMAIN=SYSTEM debug=yes
 		if [ ! "$?" = "0" ]; then
 				echo "$0: ==== Build GNUstep GUI (Cocoa AppKit) FAILED"
@@ -570,7 +602,7 @@ if [ "false" == "$BASEONLY" ]; then
 	   MSYS=winsymlinks:lnk ; export MSYS
 	fi
 	if [ "true" == "$NEEDSROOT" ]; then
-	   ${SUDO} -u root ./install.sh $prefix $MAKE
+	   ${SUDO} -u root ./install.sh $gnustep_prefix $MAKE
 	else
 	   $MAKE GNUSTEP_INSTALLATION_DOMAIN=SYSTEM install
 	fi
@@ -585,7 +617,7 @@ if [ "false" == "$BASEONLY" ]; then
 	if [ "false" == "$INSTALLONLY" ]; then
 		echo "$0: ==== Building GNUstep Backend Graphics..."
 		$MAKE GNUSTEP_INSTALLATION_DOMAIN=SYSTEM distclean
-		. $prefix/System/Library/Makefiles/GNUstep.sh
+		. $gnustep_prefix/System/Library/Makefiles/GNUstep.sh
 		$MAKE GNUSTEP_INSTALLATION_DOMAIN=SYSTEM debug=yes
 		if [ ! "$?" = "0" ]; then
 				echo "$0: ==== Build GNUstep Backend Graphics FAILED"
@@ -599,7 +631,7 @@ if [ "false" == "$BASEONLY" ]; then
 	   MSYS=winsymlinks:lnk ; export MSYS
 	fi
 	if [ "true" == "$NEEDSROOT" ]; then
-	   ${SUDO} -u root ./install.sh $prefix $MAKE
+	   ${SUDO} -u root ./install.sh $gnustep_prefix $MAKE
 	else
 	   $MAKE GNUSTEP_INSTALLATION_DOMAIN=SYSTEM install
 	fi
@@ -607,7 +639,7 @@ if [ "false" == "$BASEONLY" ]; then
 # Switch MSYS to use native (real) symbolic links for building and avoiding .lnk files
 	   MSYS=winsymlinks:nativestrict ; export MSYS
 	fi
-	. $prefix/System/Library/Makefiles/GNUstep.sh
+	. $gnustep_prefix/System/Library/Makefiles/GNUstep.sh
 
 # Build/Install essential applications: ProjectCenter
 	cd ../apps-projectcenter
@@ -762,7 +794,7 @@ if [ "false" == "$BASEONLY" ]; then
 	else
 	   echo "$0: Add script to etc and xsession..."
 	   if [ ! -e /etc/profile.d/GNUstep.sh ]; then
-		  ${SUDO} -u root ln -s $prefix/System/Library/Makefiles/GNUstep.sh /etc/profile.d/GNUstep.sh
+		  ${SUDO} -u root ln -s $gnustep_prefix/System/Library/Makefiles/GNUstep.sh /etc/profile.d/GNUstep.sh
 	   fi
 	   cd plugins-session
 	   ${SUDO} -u root ./install.sh

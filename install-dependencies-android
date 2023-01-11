@@ -9,6 +9,8 @@ install_android()
 #    pkg install gobjc			# Don't need GCC as well as clang
 #    pkg install gobjc++
     pkg install clang
+    pkg install binutils-gold	# Android package for ld.gold
+#    pkg install libdispatch	# Android has this package for libdispatch (Blocks support) but we build it ourselves in ./compile-all
 #    pkg install libjpeg-dev 
     pkg install libjpeg-turbo	# Try this on Android
     pkg install libtiff			# Changed from -dev
