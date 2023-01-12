@@ -75,11 +75,17 @@ install_android()
 
 # CJEC, 3-Oct-22: Install required tools to build GNUstep documentation
 #			make install cannot find makeinfo, latex
-        pkg install texinfo
+	pkg install texinfo
 #	pkg install texlive-latex-recommended
 
+# CJEC, 12-Jan-23: Add essential Android/Termux libraries for POSIX system calls etc.
+	pkg install libandroid-posix-semaphore
+	pkg install libandroid-posix-shmem
+	pkg install libandroid-sysv-semaphore
+	pkg install libandroid-execinfo
+	
 # CJEC 11-Jan-23: Add components from additional repositories 
-		pkg install libfuse2 	# In the root-repo repository
+	pkg install libfuse2 	# In the root-repo repository
 		
 # CJEC, 9-Jan-23: Finally check all packages are up to date
 	pkg upgrade
