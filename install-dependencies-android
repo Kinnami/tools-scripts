@@ -83,12 +83,24 @@ install_android()
 	pkg install libandroid-posix-shmem
 	pkg install libandroid-sysv-semaphore
 	pkg install libandroid-execinfo
+
+# tofts, 13-Jan-23: Install libdispatch.
+	pkg install libdispatch
 	
 # CJEC 11-Jan-23: Add components from additional repositories 
 	pkg install libfuse2 	# In the root-repo repository
 		
 # CJEC, 9-Jan-23: Finally check all packages are up to date
 	pkg upgrade
+
+# tofts, 13-Jan-23: Create directory with sym-links.
+	rm -rf ~/../usr/system_override_libs
+	mkdir ~/../usr/system_override_libs
+	ln -s /system/lib64/libEGL.so ~/../usr/system_override_libs/libEGL.so
+	ln -s /system/lib64/libGLESv1_CM.so ~/../usr/system_override_libs/libGLESv1_CM.so
+	ln -s /system/lib64/libheif.so ~/../usr/system_override_libs/libheif.so
+	ln -s /system/lib64/libcrypto.so ~/../usr/system_override_libs/libcrypto.so
+	ln -s /system/lib64/liblzma.so ~/../usr/system_override_libs/liblzma.so
 	
     echo "-------"
     echo "Done..."
