@@ -63,6 +63,7 @@ KERNEL=`uname -s | awk '{print tolower($0)}'`
 scriptsdir="`pwd`/tools-scripts"
 
 UNAME=`uname | cut -d'-' -f1`
+UNAME_CPU=`uname -m`
 FULL_UNAME=`uname -a | grep Android`
 if [[ "$FULL_UNAME" == *"Android"* ]] ; then
    IS_ANDROID="true"
@@ -138,7 +139,7 @@ else
 fi
 
 # Determine how many CPUs for parallel compilation
-# By default, only build/install the documentation on Linux, but not Linux on Android
+# By default, only build/install the documentation on Linux on x86_64, but not on Android
 INSTALLDOC="false"
 
 if [ "$UNAME" == "MINGW64_NT" ] ; then
@@ -150,7 +151,9 @@ else
        if [ "$UNAME" == "Linux" ] ; then
          CPUS=`nproc`
          if [ "$IS_ANDROID" == "false" ]; then
-            INSTALLDOC="true"
+			if [ "UNAME_CPU" == "x86_64" ]; then 
+            	INSTALLDOC="true"
+			fi
 		 fi
 	  else
 	     echo "$0: Unknown platform "$UNAME". Needs porting?"
@@ -174,15 +177,15 @@ fi
 # We also must specify some CFLAGS, LIBS, LDFLAGS to work around differences
 # from Linux and POSIX
 # Android Termux defines $PREFIX to be the directory that contains the sandboxed /home and /usr directory trees
-# Note: BASE_USR_DIR is the same as $PREFIX/../
+# Note: BASE_USR_DIR is the same as $PREFIX/..
 if [ "$IS_ANDROID" == "true" ]; then
-    BASE_USR_DIR="$HOME/../"
-    export CFLAGS="${CFLAGS} -DFNDELAY=O_NDELAY -I${BASE_USR_DIR}usr/include"
-    export LDFLAGS="${LDFLAGS} -L/system/lib64 -L${BASE_USR_DIR}usr/lib"
+    BASE_USR_DIR="$HOME/.."
+    export CFLAGS="${CFLAGS} -DFNDELAY=O_NDELAY -I${BASE_USR_DIR}/usr/include"
+    export LDFLAGS="${LDFLAGS} -L/system/lib64 -L${BASE_USR_DIR}/usr/lib"
     export LIBS="${LIBS} -landroid -landroid-shmem -landroid-posix-semaphore -landroid-sysv-semaphore -l:libicuuc.so.72.1 -l:libicui18n.so.72.1"
     unset NEEDSROOT
 else
-	BASE_USR_DIR="/"
+	BASE_USR_DIR=""
 fi
 
 if gmake -v >/dev/null 2>&1
@@ -210,16 +213,18 @@ if [ "$UNAME" == "MINGW64_NT" ] ; then
    MSYS=winsymlinks:nativestrict ; export MSYS
 fi
 
-# C flags for GCC, MINGW64
+# CFLAGS and LDFLAGS for GCC, MINGW64
 if [ "$CC" == "gcc" ] ; then
-   export CFLAGS="-I${BASE_USR_DIR}usr/local/include -fstrict-aliasing -fno-omit-frame-pointer ${CFLAGS}"
+   export CFLAGS="-I${gnustep_prefix}/Local/Library/Headers -I${gnustep_prefix}/System/Library/Headers -I${BASE_USR_DIR}/usr/local/include -fstrict-aliasing -fno-omit-frame-pointer ${CFLAGS}"
+   export LDFLAGS="-L${gnustep_prefix}/Local/Library/Libraries -L${gnustep_prefix}/System/Library/Libraries -L${BASE_USR_DIR}/usr/local/lib ${LDFLAGS}"
 fi
 
-# C flags for CLANG, libobcj4.so, blocks. Note: -fobjc-nonfragile-abi generates compiler warnings on FreeBSD. Do we need it on Linux?
+# CFLAGS and LDFLAGS for CLANG, libobcj4.so, blocks. Note: -fobjc-nonfragile-abi generates compiler warnings on FreeBSD. Do we need it on Linux?
 if [ "$CC" == "clang" ] ; then
-   export CFLAGS="-I${BASE_USR_DIR}usr/local/include -fblocks ${CFLAGS}"
+   export CFLAGS="-I${gnustep_prefix}/Local/Library/Headers -I${gnustep_prefix}/System/Library/Headers -I${BASE_USR_DIR}/usr/local/include -fblocks ${CFLAGS}"
+   export LDFLAGS="-L${gnustep_prefix}/Local/Library/Libraries -L${gnustep_prefix}/System/Library/Libraries -L${BASE_USR_DIR}/usr/local/lib ${LDFLAGS}"
 fi
-
+ 
 # C++ flags
 export CXXFLAGS="-std=c++11"
 
@@ -242,24 +247,28 @@ if [ "false" == "$INSTALLONLY" ]; then
 
 	   echo "$0: ===="
 	   ./configure --prefix=${gnustep_prefix} --enable-native-objc-exceptions --with-layout=gnustep ${make_flags}
+	   if [ ! "$?" = "0" ]; then
+		  echo "$0: ==== Configure GNUstep Make for GCC FAILED"
+		  exit 1
+	   fi
 	else
 	   echo "$0: ==== BUILDING WITH CLANG"
 	   export RUNTIME_VERSION=gnustep-2.0
 	   if [ "$UNAME" == "FreeBSD" ] ; then
-		  export LD=${BASE_USR_DIR}usr/local/bin/ld.gold
+		  export LD=${BASE_USR_DIR}/usr/local/bin/ld.gold
 # Assume the presence of libdispatch if we are using clang and libobjc2 (libobjc.so.4.x.) Specifying it directly make configure report that the C compiler does not work
-		  export LDFLAGS="-fuse-ld=${LD} -L${BASE_USR_DIR}usr/local/lib ${LDFLAGS}"
-		  export PKG_CONFIG=${BASE_USR_DIR}usr/local/bin/pkgconf
+		  export LDFLAGS="-fuse-ld=${LD} ${LDFLAGS}"
+		  export PKG_CONFIG=${BASE_USR_DIR}/usr/local/bin/pkgconf
 	   else
 	       if [ "$UNAME" == "Linux" ] ; then
-		   export LD=${BASE_USR_DIR}usr/bin/ld.gold
+		   export LD=${BASE_USR_DIR}/usr/bin/ld.gold
 # Can't link with libdispatch until we've built it
-		   export LDFLAGS="-fuse-ld=${LD} -L${BASE_USR_DIR}usr/local/lib ${LDFLAGS}"
+		   export LDFLAGS="-fuse-ld=${LD} ${LDFLAGS}"
 		   if [ "$IS_ANDROID" == "true" ]; then
 # Android installs pkgconfig in its own place
-				export PKG_CONFIG_PATH=${BASE_USR_DIR}usr/bin/pkg-config
+				export PKG_CONFIG_PATH=${BASE_USR_DIR}/usr/bin/pkg-config
 		   else
-		   		export PKG_CONFIG_PATH=${BASE_USR_DIR}usr/local/lib/pkgconfig
+		   		export PKG_CONFIG_PATH=${BASE_USR_DIR}/usr/local/lib/pkgconfig
 		   fi
 	       else
 		   echo "$0: Unknown platform "$UNAME". Needs porting?"
@@ -272,10 +281,10 @@ if [ "false" == "$INSTALLONLY" ]; then
 	   echo "$0: LIBS: "$LIBS	   
 	   echo "$0: ==== Configure GNUstep Make command: ./configure --prefix=${gnustep_prefix} --with-library-combo=ng-gnu-gnu --enable-objc-arc --enable-native-objc-exceptions --enable-install-ld-so-conf --with-layout=gnustep ${make_flags}"
 	   ./configure --prefix=${gnustep_prefix} --with-library-combo=ng-gnu-gnu --enable-objc-arc --enable-native-objc-exceptions --enable-install-ld-so-conf --with-layout=gnustep ${make_flags}
-	fi
-	if [ ! "$?" = "0" ]; then
-			echo "$0: ==== Configure GNUstep Make FAILED"
-			exit 1
+	   if [ ! "$?" = "0" ]; then
+		  echo "$0: ==== Configure GNUstep Make for CLANG FAILED"
+		  exit 1
+	   fi
 	fi
 fi
 
@@ -342,7 +351,7 @@ if [ "true" == "$NEEDSLIBOBJC2" ]; then
 	   cd build
 	   # If we're on Android, we need to change the default directory it'll install to.
 	   if  [ "$IS_ANDROID" == "true" ] ; then
-	       IF_ANDROID_CHANGE_INSTALL_DIR_FLAG="-DCMAKE_INSTALL_PREFIX=${BASE_USR_DIR}usr/local"
+	       IF_ANDROID_CHANGE_INSTALL_DIR_FLAG="-DCMAKE_INSTALL_PREFIX=${BASE_USR_DIR}/usr/local"
 	   fi
 	   cmake $IF_ANDROID_CHANGE_INSTALL_DIR_FLAG .. -DCMAKE_C_COMPILER=${CC} -DCMAKE_CXX_COMPILER=${CXX} -DCMAKE_BUILD_TYPE=Release -DUSE_GOLD_LINKER=YES 
 	   $MAKE
@@ -359,7 +368,7 @@ if [ "true" == "$NEEDSLIBOBJC2" ]; then
 # Switch MSYS to use emulated symbolic links so that tar can create files with dangling links during make install
       MSYS=winsymlinks:lnk ; export MSYS
    fi
-   # Note: libdispatch.so installs in ${BASE_USR_DIR}usr/local/lib/
+   # Note: libdispatch.so installs in ${BASE_USR_DIR}/usr/local/lib/
    if [ "true" == "$NEEDSROOT" ]; then
       ${SUDO} -u root -E $MAKE install
       ${SUDO} ldconfig
@@ -373,7 +382,7 @@ if [ "true" == "$NEEDSLIBOBJC2" ]; then
    if [ "$UNAME" == "Linux" ] ; then
 # After installing libdispatch, link everything else with it.
 # Note: When building on Raspbian PiOS (32 bit or 64 bit,) libdispatch.so and libBlocksRuntime.so are installed in a
-# 		CPU architecture-specific subdireectory of ${BASE_USR_DIR}usr/local/lib/.
+# 		CPU architecture-specific subdireectory of ${BASE_USR_DIR}/usr/local/lib/.
 #		Need to create symlinks to the binaries by hand.
 # CJEC, 10-Jan-23: TODO: FIXME: Create symlinks to libdispatch.so etc. when building for Raspbian PiOS
        export LIBS="${LIBS} -ldispatch"
@@ -554,7 +563,11 @@ if [ "false" == "$INSTALLONLY" ]; then
 	    ANDROID_ZONEINFO_DIR_FLAG="--with-zoneinfo=/system/usr/share/zoneinfo"
 	fi
 	# Linux: Make sure that ICU header files for Linux can be found
-	CFLAGS="-I${gnustep_prefix}/Local/Library/Headers -I${BASE_USR_DIR}usr/local/include" LDFLAGS="-L${gnustep_prefix}/Local/Library/Libraries" ./configure $ANDROID_ZONEINFO_DIR_FLAG
+	./configure $ANDROID_ZONEINFO_DIR_FLAG
+	if [ ! "$?" = "0" ]; then
+	  echo "$0: ==== Configure GNUstep CoreBase (Core Foundation) FAILED"
+	  exit 1
+	fi
 	$MAKE GNUSTEP_INSTALLATION_DOMAIN=SYSTEM debug=yes
 	echo "zoneinfo flag is ${ANDROID_ZONEINFO_DIR_FLAG}"
 	if [ ! "$?" = "0" ]; then
@@ -588,7 +601,11 @@ if [ "false" == "$BASEONLY" ]; then
 		$MAKE GNUSTEP_INSTALLATION_DOMAIN=SYSTEM distclean
 		. $gnustep_prefix/System/Library/Makefiles/GNUstep.sh
 		./configure --enable-imagemagick
-# FreeBSD requires a symbolic link in ${BASE_USR_DIR}usr/local/include: ln -s ImageMagick-7/MagicCore magick
+# FreeBSD requires a symbolic link in ${BASE_USR_DIR}/usr/local/include: ln -s ImageMagick-7/MagicCore magick
+		if [ ! "$?" = "0" ]; then
+		  echo "$0: ==== Configure GNUstep GUI (Cocoa) FAILED"
+		  exit 1
+		fi
 		$MAKE GNUSTEP_INSTALLATION_DOMAIN=SYSTEM debug=yes
 		if [ ! "$?" = "0" ]; then
 				echo "$0: ==== Build GNUstep GUI (Cocoa AppKit) FAILED"
@@ -676,6 +693,10 @@ if [ "false" == "$BASEONLY" ]; then
 		echo "$0: ==== Building GNUstep PDFKit..."
 		$MAKE distclean
 		./configure
+		if [ ! "$?" = "0" ]; then
+		  echo "$0: ==== Configure GNUstep PDFKit FAILED"
+		  exit 1
+		fi
 		$MAKE
 		if [ ! "$?" = "0" ]; then
 				echo "$0: ==== Build GNUstep PDFKit FAILED"
@@ -705,6 +726,10 @@ if [ "false" == "$BASEONLY" ]; then
 		echo "$0: ==== Building GNUstep GWorkspace..."
 		$MAKE distclean
 		./configure
+		if [ ! "$?" = "0" ]; then
+		  echo "$0: ==== Configure GNUstep GWorkspace FAILED"
+		  exit 1
+		fi
 		$MAKE
 		if [ ! "$?" = "0" ]; then
 				echo "$0: ==== Build GNUstep GWorkspace FAILED"
