@@ -56,6 +56,9 @@ install_debian()
 	sudo apt-get --yes --force-yes install texinfo
 	sudo apt-get --yes --force-yes install texlive-latex-recommended
 
+# tofts, 26-Apr-23: Install net-tools dependency to provide the ifconfig command for AmiShare.
+	sudo apt-get --yes --force-yes install net-tools
+
     echo "-------"
     echo "Done..."
 }
