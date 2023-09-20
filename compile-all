@@ -302,8 +302,8 @@ if [ ! "$?" = "0" ]; then
         exit 1
 fi
 if [ "$UNAME" == "MINGW64_NT" ] ; then
-# Switch MSYS to use emulated symbolic links so that tar can create files with dangling links during make install
-   MSYS=winsymlinks:lnk ; export MSYS
+# Unset MSYS so that tar can create files with dangling links during make install
+   unset MSYS
 fi
 if [ "true" == "$NEEDSROOT" ]; then
    ${SUDO} -u root $MAKE install
@@ -365,8 +365,8 @@ if [ "true" == "$NEEDSLIBOBJC2" ]; then
    echo "$0: ==== Installing libdispatch..."
    cd build
    if [ "$UNAME" == "MINGW64_NT" ] ; then
-# Switch MSYS to use emulated symbolic links so that tar can create files with dangling links during make install
-      MSYS=winsymlinks:lnk ; export MSYS
+# Unset MSYS so that tar can create files with dangling links during make install
+      unset MSYS
    fi
    # Note: libdispatch.so installs in ${BASE_USR_DIR}/usr/local/lib/
    if [ "true" == "$NEEDSROOT" ]; then
@@ -409,8 +409,8 @@ if [ "true" == "$NEEDSLIBOBJC2" ]; then
    echo "$0: ==== Installing libobjc2 (libobjc.so.	4.x)..."
    cd build
    if [ "$UNAME" == "MINGW64_NT" ] ; then
-# Switch MSYS to use emulated symbolic links so that tar can create files with dangling links during make install
-      MSYS=winsymlinks:lnk ; export MSYS
+# Unset MSYS so that tar can create files with dangling links during make install
+      unset MSYS
    fi
 # Note: libobjc2 (libobjc.so.4.x) installs in $gnustep_prefix/Local/Library/Libraries/
    if [ "true" == "$NEEDSROOT" ]; then
@@ -443,8 +443,8 @@ if [ "true" == "$NEEDSLIBOBJC2" ]; then
 	  exit 1
    fi
    if [ "$UNAME" == "MINGW64_NT" ] ; then
-# Switch MSYS to use emulated symbolic links so that tar can create files with dangling links during make install
-      MSYS=winsymlinks:lnk ; export MSYS
+# Unset MSYS so that tar can create files with dangling links during make install
+      unset MSYS
    fi
    if [ "true" == "$NEEDSROOT" ]; then
       ${SUDO} -u root $MAKE install
@@ -477,8 +477,8 @@ if [ "true" == "$INSTALLDOC" ]; then
 
 	echo "$0: ==== Installing GNUstep Make Documentation..."
 	if [ "$UNAME" == "MINGW64_NT" ] ; then
-# Switch MSYS to use emulated symbolic links so that tar can create files with dangling links during make install
-	   MSYS=winsymlinks:lnk ; export MSYS
+# Unset MSYS so that tar can create files with dangling links during make install
+   unset MSYS
 	fi
 	if [ "true" == "$NEEDSROOT" ]; then
 	   ${SUDO} -u root ./install.sh $gnustep_prefix $MAKE
@@ -507,8 +507,8 @@ fi
 
 echo "$0: ==== Installing GNUstep Base (Foundation)..."
 if [ "$UNAME" == "MINGW64_NT" ] ; then
-# Switch MSYS to use emulated symbolic links so that tar can create files with dangling links during make install
-   MSYS=winsymlinks:lnk ; export MSYS
+# Unset MSYS so that tar can create files with dangling links during make install
+   unset MSYS
 fi
 if [ "true" == "$NEEDSROOT" ]; then
    ${SUDO} -u root ./install.sh $gnustep_prefix $MAKE
@@ -537,8 +537,8 @@ if [ "true" == "$INSTALLDOC" ]; then
 
 	echo "$0: ==== Installing GNUstep Base (Foundation) Documentation..."
 	if [ "$UNAME" == "MINGW64_NT" ] ; then
-# Switch MSYS to use emulated symbolic links so that tar can create files with dangling links during make install
-	   MSYS=winsymlinks:lnk ; export MSYS
+# Unset MSYS so that tar can create files with dangling links during make install
+   unset MSYS
 	fi
 	if [ "true" == "$NEEDSROOT" ]; then
 	   ${SUDO} -u root ./install.sh $gnustep_prefix $MAKE
@@ -578,8 +578,8 @@ fi
 
 echo "$0: ==== Installing GNUstep CoreBase (Core Foundation)..."
 if [ "$UNAME" == "MINGW64_NT" ] ; then
-# Switch MSYS to use emulated symbolic links so that tar can create files with dangling links during make install
-   MSYS=winsymlinks:lnk ; export MSYS
+# Unset MSYS so that tar can create files with dangling links during make install
+   unset MSYS
 fi
 if [ "true" == "$NEEDSROOT" ]; then
 ${SUDO} -u root -E $MAKE install messages=yes
@@ -615,8 +615,8 @@ if [ "false" == "$BASEONLY" ]; then
 
 	echo "$0: ==== Installing GNUstep GUI (Cocoa AppKit)..."
 	if [ "$UNAME" == "MINGW64_NT" ] ; then
-# Switch MSYS to use emulated symbolic links so that tar can create files with dangling links during make install
-	   MSYS=winsymlinks:lnk ; export MSYS
+# Unset MSYS so that tar can create files with dangling links during make install
+	   unset MSYS
 	fi
 	if [ "true" == "$NEEDSROOT" ]; then
 	   ${SUDO} -u root ./install.sh $gnustep_prefix $MAKE
@@ -644,8 +644,8 @@ if [ "false" == "$BASEONLY" ]; then
 	
 	echo "$0: ==== Installing GNUstep Backend Graphics..."
 	if [ "$UNAME" == "MINGW64_NT" ] ; then
-# Switch MSYS to use emulated symbolic links so that tar can create files with dangling links during make install
-	   MSYS=winsymlinks:lnk ; export MSYS
+# Unset MSYS so that tar can create files with dangling links during make install
+	   unset MSYS
 	fi
 	if [ "true" == "$NEEDSROOT" ]; then
 	   ${SUDO} -u root ./install.sh $gnustep_prefix $MAKE
@@ -673,8 +673,8 @@ if [ "false" == "$BASEONLY" ]; then
 	
 	echo "$0: ==== Installing GNUstep Projectcenter..."
 	if [ "$UNAME" == "MINGW64_NT" ] ; then
-# Switch MSYS to use emulated symbolic links so that tar can create files with dangling links during make install
-	   MSYS=winsymlinks:lnk ; export MSYS
+# Unset MSYS so that tar can create files with dangling links during make install
+	   unset MSYS
 	fi
 	if [ "true" == "$NEEDSROOT" ]; then
 	   ${SUDO} -u root -E $MAKE install
@@ -706,8 +706,8 @@ if [ "false" == "$BASEONLY" ]; then
 	
 	echo "$0: ==== Installing GNUstep PDFKit..."
 	if [ "$UNAME" == "MINGW64_NT" ] ; then
-# Switch MSYS to use emulated symbolic links so that tar can create files with dangling links during make install
-	   MSYS=winsymlinks:lnk ; export MSYS
+# Unset MSYS so that tar can create files with dangling links during make install
+	   unset MSYS
 	fi
 	if [ "true" == "$NEEDSROOT" ]; then
 	   ${SUDO} -u root -E $MAKE install
@@ -739,8 +739,8 @@ if [ "false" == "$BASEONLY" ]; then
 	
 	echo "$0: ==== Installing GNUstep GWorkspace..."
 	if [ "$UNAME" == "MINGW64_NT" ] ; then
-# Switch MSYS to use emulated symbolic links so that tar can create files with dangling links during make install
-	   MSYS=winsymlinks:lnk ; export MSYS
+# Unset MSYS so that tar can create files with dangling links during make install
+	   unset MSYS
 	fi
 	if [ "true" == "$NEEDSROOT" ]; then
 	   ${SUDO} -u root -E $MAKE install
@@ -767,8 +767,8 @@ if [ "false" == "$BASEONLY" ]; then
 	
 	echo "$0: ==== Installing GNUstep SystemPreferences..."
 	if [ "$UNAME" == "MINGW64_NT" ] ; then
-# Switch MSYS to use emulated symbolic links so that tar can create files with dangling links during make install
-	   MSYS=winsymlinks:lnk ; export MSYS
+# Unset MSYS so that tar can create files with dangling links during make install
+	   unset MSYS
 	fi
 	if [ "true" == "$NEEDSROOT" ]; then
 	   ${SUDO} -u root -E $MAKE install
@@ -795,8 +795,8 @@ if [ "false" == "$BASEONLY" ]; then
 	
 	echo "$0: ==== Installing GNUstep Gorm..."
 	if [ "$UNAME" == "MINGW64_NT" ] ; then
-# Switch MSYS to use emulated symbolic links so that tar can create files with dangling links during make install
-	   MSYS=winsymlinks:lnk ; export MSYS
+# Unset MSYS so that tar can create files with dangling links during make install
+	   #unset MSYS
 	fi
 	if [ "true" == "$NEEDSROOT" ]; then
 	   ${SUDO} -u root -E $MAKE install
