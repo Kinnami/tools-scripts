@@ -796,7 +796,7 @@ if [ "false" == "$BASEONLY" ]; then
 	echo "$0: ==== Installing GNUstep Gorm..."
 	if [ "$UNAME" == "MINGW64_NT" ] ; then
 # Unset MSYS so that tar can create files with dangling links during make install
-	   #unset MSYS
+	   unset MSYS
 	fi
 	if [ "true" == "$NEEDSROOT" ]; then
 	   ${SUDO} -u root -E $MAKE install
