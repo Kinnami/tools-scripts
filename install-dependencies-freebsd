@@ -29,7 +29,8 @@ sudo pkg install flite
 sudo pkg install -y gmake wget git subversion libxml2 \
 	autoconf libtool \
 	jpeg-turbo libX11 libXft libXrandr pkgconf \
-	curl
+	curl \
+	binutils
 # GhostBSD: May also need: https://forums.swift.org/t/swift-compilation-on-freebsd/20597/4
 # ninja python e2fsprogs-libuuid libedit sqlite3 swig ncurses rsync
 
