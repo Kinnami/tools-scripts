@@ -40,6 +40,7 @@ echo "5) compiler, also install older binutils to avoid linking issue"
 pacman --noconfirm -S mingw-w64-x86_64-clang
 pacman --noconfirm -S mingw-w64-x86_64-gcc
 pacman --noconfirm -S mingw-w64-x86_64-gcc-objc
+pacman --noconfirm -S mingw-w64-x86_64-lld
 
 #
 # IMPORTANT: if you are using the GNUstep release or latest tarballs

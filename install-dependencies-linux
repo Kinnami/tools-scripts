@@ -45,7 +45,7 @@ install_debian()
 	sudo apt -y install build-essential wget git subversion \
 		libgnutls28-dev libkqueue-dev libpthread-workqueue-dev autoconf libtool \
 		libcairo-dev libx11-dev libxrandr-dev \
-		curl
+		curl lld
 # CJEC, 26-Sep-22: Install GnuTLS runtime required for TLS support in GNUstep Foundation.
 #			make check fails for libs-base without this.
 #			https://help.ubuntu.com/community/GnuTLS

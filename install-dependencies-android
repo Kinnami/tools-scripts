@@ -67,6 +67,7 @@ install_android()
 	pkg install autoconf libtool
 	pkg install libcairo libx11 libxrandr
 	pkg install curl
+	pkg install lld
 # CJEC, 26-Sep-22: Install GnuTLS runtime required for TLS support in GNUstep Foundation.
 #			make check fails for libs-base without this.
 #			https://help.ubuntu.com/community/GnuTLS

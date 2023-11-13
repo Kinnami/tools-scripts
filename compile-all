@@ -253,27 +253,37 @@ if [ "false" == "$INSTALLONLY" ]; then
 	   fi
 	else
 	   echo "$0: ==== BUILDING WITH CLANG"
+# Note: The next-generation Objective C runtime requires clang and either the GNU ELF linker (ld.gold) or the LLVM linker (lld)
 	   export RUNTIME_VERSION=gnustep-2.0
 	   if [ "$UNAME" == "FreeBSD" ] ; then
-		  export LD=${BASE_USR_DIR}/usr/local/bin/ld.gold
+# Note: FreeBSD's default linker /usr/bin/ld is actually lld so it's probably a better choice.
+#		  export LD=${BASE_USR_DIR}/usr/local/bin/ld.gold
+		  export LD=${BASE_USR_DIR}/usr/bin/ld.lld
 # Assume the presence of libdispatch if we are using clang and libobjc2 (libobjc.so.4.x.) Specifying it directly make configure report that the C compiler does not work
 		  export LDFLAGS="-fuse-ld=${LD} ${LDFLAGS}"
 		  export PKG_CONFIG=${BASE_USR_DIR}/usr/local/bin/pkgconf
 	   else
-	       if [ "$UNAME" == "Linux" ] ; then
-		   export LD=${BASE_USR_DIR}/usr/bin/ld.gold
+		  if [ "$UNAME" == "Linux" ] ; then
+# The GNU linker, ld.gold, is now broken on 32-bit Raspbian PiOS! (Argh!) Use the LLVM linker instead
+		     if [ "$UNAME_CPU" == "armv6l" ] ; then
+		        export LD=${BASE_USR_DIR}/usr/bin/ld.lld
+		     elif [ "$UNAME_CPU" == "armv7l" ] ; then
+		        export LD=${BASE_USR_DIR}/usr/bin/ld.lld
+		     else
+		        export LD=${BASE_USR_DIR}/usr/bin/ld.gold
+		     fi
 # Can't link with libdispatch until we've built it
-		   export LDFLAGS="-fuse-ld=${LD} ${LDFLAGS}"
-		   if [ "$IS_ANDROID" == "true" ]; then
+		  export LDFLAGS="-fuse-ld=${LD} ${LDFLAGS}"
+		  if [ "$IS_ANDROID" == "true" ]; then
 # Android installs pkgconfig in its own place
-				export PKG_CONFIG_PATH=${BASE_USR_DIR}/usr/bin/pkg-config
-		   else
-		   		export PKG_CONFIG_PATH=${BASE_USR_DIR}/usr/local/lib/pkgconfig
-		   fi
-	       else
-		   echo "$0: Unknown platform "$UNAME". Needs porting?"
-		   exit 1
-	       fi
+		     export PKG_CONFIG_PATH=${BASE_USR_DIR}/usr/bin/pkg-config
+		  else
+			 export PKG_CONFIG_PATH=${BASE_USR_DIR}/usr/local/lib/pkgconfig
+		  fi
+		  else
+		  echo "$0: Unknown platform "$UNAME". Needs porting?"
+		  exit 1
+		  fi
 	   fi
 	   echo "$0: CFLAGS: "$CFLAGS
 	   echo "$0: CXXFLAGS: "$CXXFLAGS
@@ -290,8 +300,8 @@ fi
 
 if [ "$UNAME" == "MINGW64_NT" ] ; then
 # Wait to edit newly created GNUstep make configuration. The test to verify that native Objective C exceptions fails to identify working exceptions in modern GCC.
-   echo "$0: Is 'USE_OBJC_EXCEPTIONS = yes' in the newly created `pwd`/config.make? If not, edit it before continuing"
-   read -p "$0: About to install GNUstep Make. Continue: ARE YOU SURE? Press <CTRL>-C to abort, <RETURN> to continue... " input
+#   echo "$0: Is 'USE_OBJC_EXCEPTIONS = yes' in the newly created `pwd`/config.make? If not, edit it before continuing"
+#   read -p "$0: About to install GNUstep Make. Continue: ARE YOU SURE? Press <CTRL>-C to abort, <RETURN> to continue... " input
 fi
 
 # Install GNUstep Make after configuration...
@@ -320,8 +330,8 @@ fi
 if [ "false" == "$INSTALLONLY" ]; then
 	if [ "$UNAME" == "MINGW64_NT" ] ; then
 # Wait to edit makefiles after installing GNUstep Make
-	   echo "$0: After installing GNUstep Make, gnustep-config --objc-flags reports:" `gnustep-config --objc-flags`
-	   read -p "$0: About to clean, build, install Base. Have Objective C exceptions been enabled? Continue: ARE YOU SURE? Press <CTRL>-C to abort, <RETURN> to continue... " input
+#	   echo "$0: After installing GNUstep Make, gnustep-config --objc-flags reports:" `gnustep-config --objc-flags`
+#	   read -p "$0: About to clean, build, install Base. Have Objective C exceptions been enabled? Continue: ARE YOU SURE? Press <CTRL>-C to abort, <RETURN> to continue... " input
 	fi
 fi
 
