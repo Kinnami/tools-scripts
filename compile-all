@@ -300,8 +300,9 @@ fi
 
 if [ "$UNAME" == "MINGW64_NT" ] ; then
 # Wait to edit newly created GNUstep make configuration. The test to verify that native Objective C exceptions fails to identify working exceptions in modern GCC.
-#   echo "$0: Is 'USE_OBJC_EXCEPTIONS = yes' in the newly created `pwd`/config.make? If not, edit it before continuing"
-#   read -p "$0: About to install GNUstep Make. Continue: ARE YOU SURE? Press <CTRL>-C to abort, <RETURN> to continue... " input
+#  echo "$0: Is 'USE_OBJC_EXCEPTIONS = yes' in the newly created `pwd`/config.make? If not, edit it before continuing"
+   echo "$0: Assuming 'USE_OBJC_EXCEPTIONS = yes' in the newly created `pwd`/config.make"
+#  read -p "$0: About to install GNUstep Make. Continue: ARE YOU SURE? Press <CTRL>-C to abort, <RETURN> to continue... " input
 fi
 
 # Install GNUstep Make after configuration...
@@ -330,7 +331,7 @@ fi
 if [ "false" == "$INSTALLONLY" ]; then
 	if [ "$UNAME" == "MINGW64_NT" ] ; then
 # Wait to edit makefiles after installing GNUstep Make
-#	   echo "$0: After installing GNUstep Make, gnustep-config --objc-flags reports:" `gnustep-config --objc-flags`
+	   echo "$0: After installing GNUstep Make, gnustep-config --objc-flags reports:" `gnustep-config --objc-flags`
 #	   read -p "$0: About to clean, build, install Base. Have Objective C exceptions been enabled? Continue: ARE YOU SURE? Press <CTRL>-C to abort, <RETURN> to continue... " input
 	fi
 fi
