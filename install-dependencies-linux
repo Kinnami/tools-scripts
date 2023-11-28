@@ -10,6 +10,7 @@ install_debian()
     sudo apt-get --yes --force-yes install gobjc++
     sudo apt-get --yes --force-yes install clang
     sudo apt-get --yes --force-yes install lld
+    sudo apt-get --yes --force-yes install gdb
     sudo apt-get --yes --force-yes install libjpeg-dev 
     sudo apt-get --yes --force-yes install libtiff-dev 
     sudo apt-get --yes --force-yes install libpng-dev 
