@@ -62,11 +62,12 @@ install_debian()
 # tofts, 26-Apr-23: Install net-tools dependency to provide the ifconfig command for AmiShare.
 	sudo apt-get --yes --force-yes install net-tools
 
-# CJEC, 22-NOv-23: Install additional dependencies required by AmiShare
+# CJEC, 22-Nov-23: Install additional dependencies required by AmiShare
 	sudo apt -y install sqlite3 libsqlite3-dev
 	sudo apt -y install libbluetooth-dev
 	sudo apt -y install libbsd-dev
 	sudo apt -y install libfuse-dev
+	sudo apt -y install curl
 
     echo "-------"
     echo "Done..."
