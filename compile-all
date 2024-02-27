@@ -182,7 +182,7 @@ if [ "$IS_ANDROID" == "true" ]; then
     BASE_USR_DIR="$HOME/.."
     export CFLAGS="${CFLAGS} -DFNDELAY=O_NDELAY -I${BASE_USR_DIR}/usr/include"
     export LDFLAGS="${LDFLAGS} -L/system/lib64 -L${BASE_USR_DIR}/usr/lib"
-    export LIBS="${LIBS} -landroid -landroid-shmem -landroid-posix-semaphore -landroid-sysv-semaphore -l:libicuuc.so.72.1 -l:libicui18n.so.72.1"
+    export LIBS="${LIBS} -landroid -landroid-shmem -landroid-posix-semaphore -landroid-sysv-semaphore -l:libicuuc.so.74.2 -l:libicui18n.so.74.2"
     unset NEEDSROOT
 else
 	BASE_USR_DIR=""
