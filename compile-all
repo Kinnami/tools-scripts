@@ -569,18 +569,26 @@ if [ "false" == "$INSTALLONLY" ]; then
     echo "$0: ==== Building GNUstep CoreBase (Core Foundation)..."
 	$MAKE GNUSTEP_INSTALLATION_DOMAIN=SYSTEM distclean
 	. $gnustep_prefix/System/Library/Makefiles/GNUstep.sh
-	# FreeBSD: Make sure that the GNUstep Objective C header files are in front any others
+	# gcc: Disaable Grand Central Dispatch
+	# gcc on Windows: Also disable CFRunLoop
+	if [ "$CC" == "gcc" ]; then
+		if [ "$UNAME" == "MINGW64_NT" ] ; then
+			CONFIGURE_LIBSCOREBASE="--without-gcd --disable-cfrunloop"
+		else
+			CONFIGURE_LIBSCOREBASE="--without-gcd"
+		fi
+	fi
 	if [ "true" == "$IS_ANDROID" ]; then
 	    ANDROID_ZONEINFO_DIR_FLAG="--with-zoneinfo=/system/usr/share/zoneinfo"
 	fi
 	# Linux: Make sure that ICU header files for Linux can be found
-	./configure $ANDROID_ZONEINFO_DIR_FLAG
+	./configure $ANDROID_ZONEINFO_DIR_FLAG $CONFIGURE_LIBSCOREBASE
 	if [ ! "$?" = "0" ]; then
 	  echo "$0: ==== Configure GNUstep CoreBase (Core Foundation) FAILED"
 	  exit 1
 	fi
 	$MAKE GNUSTEP_INSTALLATION_DOMAIN=SYSTEM debug=yes
-	echo "zoneinfo flag is ${ANDROID_ZONEINFO_DIR_FLAG}"
+	echo "Android: zoneinfo flag is ${ANDROID_ZONEINFO_DIR_FLAG}"
 	if [ ! "$?" = "0" ]; then
 		echo "$0: ==== Build GNUstep CoreBase (Core Foundation) FAILED"
 		exit 1
