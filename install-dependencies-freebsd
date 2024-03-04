@@ -5,7 +5,8 @@ echo "NOTE: This file assumes that Xorg is installed and that sudo is installed.
 echo "      Also, the user must have sudo access to properly execute this script."
 echo "Installing..."
 
-sudo pkg install libobjc2
+# Note: libobjc2 (AKA libobjc.so.4) distributed by pkg is not maintaained and now breaks. Continue to use the pkg-maintained libdispatch v5.5.1
+sudo pkg install libdispatch
 sudo pkg install llvm
 sudo pkg install gmake
 sudo pkg install cmake

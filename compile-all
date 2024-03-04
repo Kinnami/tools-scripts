@@ -260,6 +260,7 @@ if [ "false" == "$INSTALLONLY" ]; then
 #		  export LD=${BASE_USR_DIR}/usr/local/bin/ld.gold
 		  export LD=${BASE_USR_DIR}/usr/bin/ld.lld
 # Assume the presence of libdispatch if we are using clang and libobjc2 (libobjc.so.4.x.) Specifying it directly make configure report that the C compiler does not work
+          export LIBS="${LIBS} -ldispatch"
 		  export LDFLAGS="-fuse-ld=${LD} ${LDFLAGS}"
 		  export PKG_CONFIG=${BASE_USR_DIR}/usr/local/bin/pkgconf
 	   else
@@ -335,14 +336,17 @@ if [ "false" == "$INSTALLONLY" ]; then
 #	   read -p "$0: About to clean, build, install Base. Have Objective C exceptions been enabled? Continue: ARE YOU SURE? Press <CTRL>-C to abort, <RETURN> to continue... " input
 	fi
 fi
+cd ..
 
 # If we are building with clang and also building libobjc2 (libobjc.so.4.x), we need to build libdispatch and libobjc.so.4.x and then install GNUstep make again
 if [ "$CC" == "clang" ] ; then
    if [ "$UNAME" == "FreeBSD" ] ; then
-      NEEDSLIBOBJC2="false"
-      echo "$0: FreeBSD uses libobjc.so.4.x provided with the operating system"
+         NEEDSLIBDISPATCH="false"
+         NEEDSLIBOBJC2="true"
+         echo "$0: FreeBSD uses libobjc.so.4.x that will be built now. libobjc.so.4 provided by pkg is not maintained and conflicts with the maintained libdispatch 5.5.1"
    else
       if [ "$UNAME" == "Linux" ] ; then
+         NEEDSLIBDISPATCH="true"
          NEEDSLIBOBJC2="true"
          echo "$0: Linux uses libobjc.so.4.x that will be built now"
 	  else
@@ -351,9 +355,9 @@ if [ "$CC" == "clang" ] ; then
       fi
    fi
 fi
-if [ "true" == "$NEEDSLIBOBJC2" ]; then
+if [ "true" == "$NEEDSLIBDISPATCH" ]; then
 # Build/Install libdispatch
-   cd ../swift-corelibs-libdispatch
+   cd swift-corelibs-libdispatch
    
 	if [ "false" == "$INSTALLONLY" ]; then
 	   echo "$0: ==== Building libdispatch..."
@@ -390,17 +394,18 @@ if [ "true" == "$NEEDSLIBOBJC2" ]; then
 # Switch MSYS to use native (real) symbolic links for building and avoiding .lnk files
       MSYS=winsymlinks:nativestrict ; export MSYS
    fi
-   if [ "$UNAME" == "Linux" ] ; then
 # After installing libdispatch, link everything else with it.
 # Note: When building on Raspbian PiOS (32 bit or 64 bit,) libdispatch.so and libBlocksRuntime.so are installed in a
 # 		CPU architecture-specific subdireectory of ${BASE_USR_DIR}/usr/local/lib/.
 #		Need to create symlinks to the binaries by hand.
 # CJEC, 10-Jan-23: TODO: FIXME: Create symlinks to libdispatch.so etc. when building for Raspbian PiOS
-       export LIBS="${LIBS} -ldispatch"
-   fi
-   
+   export LIBS="${LIBS} -ldispatch"
+   cd ../..
+fi
+
+if [ "true" == "$NEEDSLIBOBJC2" ]; then
 # Build/Install libobjc2
-   cd ../../libobjc2
+   cd libobjc2
 
 	if [ "false" == "$INSTALLONLY" ]; then
 	   echo "$0: ==== Building libobjc2 (libobjc.so.4.x)..."
