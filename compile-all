@@ -151,7 +151,7 @@ else
        if [ "$UNAME" == "Linux" ] ; then
          CPUS=`nproc`
          if [ "$IS_ANDROID" == "false" ]; then
-			if [ "UNAME_CPU" == "x86_64" ]; then 
+			if [ "$UNAME_CPU" == "x86_64" ]; then
             	INSTALLDOC="true"
 			fi
 		 fi
