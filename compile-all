@@ -473,11 +473,12 @@ if [ "true" == "$NEEDSLIBOBJC2" ]; then
    fi
 
    . $gnustep_prefix/System/Library/Makefiles/GNUstep.sh
-
+  cd ..
+  
 fi
 
 # Build/Install GNUstep Make Documentation
-cd ../tools-make/Documentation
+cd tools-make/Documentation
 
 if [ "true" == "$INSTALLDOC" ]; then
 	if [ "false" == "$INSTALLONLY" ]; then
