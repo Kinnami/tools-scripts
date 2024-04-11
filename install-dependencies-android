@@ -87,6 +87,23 @@ install_android()
 
 # tofts, 13-Jan-23: Install libdispatch.
 	pkg install libdispatch
+
+	# tofts, 11-Apr-24: Additional dependencies from unpack-files.sh
+	pkg install libandroid-glob
+	pkg install libandroid-shmem
+	pkg install libandroid-spawn
+	pkg install libandroid-support
+	pkg install libuuid
+	pkg install ncurses
+	pkg install ncurses-ui-libs
+	pkg install sqlite
+	pkg install libsqlite
+	pkg install iproute2
+	pkg install libbsd
+	pkg install attr
+	pkg install libnss
+	pkg install mdns-scan
+	pkg install net-tools
 	
 # CJEC 11-Jan-23: Add components from additional repositories 
 	pkg install libfuse2 	# In the root-repo repository
