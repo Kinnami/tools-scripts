@@ -68,6 +68,7 @@ install_debian()
 	sudo apt -y install libbsd-dev
 	sudo apt -y install libfuse-dev
 	sudo apt -y install curl
+	sudo apt -y install libtcmalloc-minimal4
 
     echo "-------"
     echo "Done..."

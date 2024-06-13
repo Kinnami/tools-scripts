@@ -1,0 +1,52 @@
+#!/bin/sh
+
+# Inform the user. ;) 
+echo "NOTE: Make sure you have done brew update and brew upgrade prior to running this script."
+echo "Installing macOS dependencies (MacPorts)"
+echo "-------"
+
+# Verify MacPorts is installed...
+if [ -e /opt/local/bin/port ]; then
+	echo "MacPorts installed... continuing."
+else
+	echo "MacPorts is not installed. Visit https://www.macports.org"
+fi
+
+# Create frameworks dir...
+if [ -e /opt/local/Library/Frameworks ]; then
+	echo "Frameworks directory present."
+else
+	sudo mkdir /opt/local/Library/Frameworks
+fi 
+
+# Upgrade MacPorts and existing ports
+sudo port selfupdate
+sudo port upgrade outdated
+
+# Install dependencies...
+echo "-------"
+sudo port install jpeg 
+sudo port install tiff 
+sudo port install libpng
+sudo port install libicns 
+sudo port install libxml2
+sudo port install libxslt
+sudo port install gnutls
+sudo port install libffi
+# sudo port install icu # optional
+sudo port install cairo
+sudo port install xft2  # provided by X11
+# sudo port install bavahi # optional
+# sudo port install flite # optional
+sudo port install xorg-libXt  # provided by X11
+sudo port install portaudio
+sudo port install make
+sudo port install cmake
+
+#echo "------- Upgrade existing packages..."
+#brew upgrade
+#echo "-------"
+#echo "Done..."
+
+exit 0
+
