@@ -179,10 +179,11 @@ fi
 # Android Termux defines $PREFIX to be the directory that contains the sandboxed /home and /usr directory trees
 # Note: BASE_USR_DIR is the same as $PREFIX/..
 if [ "$IS_ANDROID" == "true" ]; then
+    unset LD_LIBRARY_PATH
     BASE_USR_DIR="$HOME/.."
     export CFLAGS="${CFLAGS} -DFNDELAY=O_NDELAY -I${BASE_USR_DIR}/usr/include"
     export LDFLAGS="${LDFLAGS} -L/system/lib64 -L${BASE_USR_DIR}/usr/lib"
-    export LIBS="${LIBS} -landroid -landroid-shmem -landroid-posix-semaphore -landroid-sysv-semaphore -l:libicuuc.so.74.2 -l:libicui18n.so.74.2"
+    export LIBS="${LIBS} -landroid -landroid-shmem -landroid-posix-semaphore -landroid-sysv-semaphore -l:libicuuc.so -l:libicui18n.so"
     unset NEEDSROOT
 else
 	BASE_USR_DIR=""
