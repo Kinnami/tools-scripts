@@ -86,7 +86,13 @@ else
    fi
 fi
 
-# Determine whether to build and install, or just install
+# Determine whether to build and install, or just install, 
+# or just build (for ansible)
+if [ "$5" == "build-only" ]; then
+	BUILDONLY="true"
+else
+	BUILDONLY="false"
+fi
 if [ "$5" == "install-only" ]; then
     INSTALLONLY="true"
 	echo "$0: Not using supplied prefix "$gnustep_prefix
@@ -307,13 +313,17 @@ if [ "$UNAME" == "MINGW64_NT" ] ; then
 #  read -p "$0: About to install GNUstep Make. Continue: ARE YOU SURE? Press <CTRL>-C to abort, <RETURN> to continue... " input
 fi
 
+
 # Install GNUstep Make after configuration...
 echo "$0: ==== Installing GNUstep Make..."
+
 $MAKE
 if [ ! "$?" = "0" ]; then
         echo "$0: ==== Install GNUstep Make FAILED"
         exit 1
 fi
+
+if [ "false" == "$BUILDONLY" ]; then
 if [ "$UNAME" == "MINGW64_NT" ] ; then
 # Unset MSYS so that tar can create files with dangling links during make install
    unset MSYS
@@ -323,12 +333,15 @@ if [ "true" == "$NEEDSROOT" ]; then
 else
    $MAKE install
 fi 
+
+
 if [ "$UNAME" == "MINGW64_NT" ] ; then
 # Switch MSYS to use native (real) symbolic links for building and avoiding .lnk files
    MSYS=winsymlinks:nativestrict ; export MSYS
 fi
 
 . $gnustep_prefix/System/Library/Makefiles/GNUstep.sh
+fi
 
 if [ "false" == "$INSTALLONLY" ]; then
 	if [ "$UNAME" == "MINGW64_NT" ] ; then
@@ -378,8 +391,10 @@ if [ "true" == "$NEEDSLIBDISPATCH" ]; then
 	   cd ..
 	fi
 
+if [ "false" == "$BUILDONLY" ]; then
    echo "$0: ==== Installing libdispatch..."
    cd build
+
    if [ "$UNAME" == "MINGW64_NT" ] ; then
 # Unset MSYS so that tar can create files with dangling links during make install
       unset MSYS
@@ -395,13 +410,16 @@ if [ "true" == "$NEEDSLIBDISPATCH" ]; then
 # Switch MSYS to use native (real) symbolic links for building and avoiding .lnk files
       MSYS=winsymlinks:nativestrict ; export MSYS
    fi
+   cd ..
+fi
+
 # After installing libdispatch, link everything else with it.
 # Note: When building on Raspbian PiOS (32 bit or 64 bit,) libdispatch.so and libBlocksRuntime.so are installed in a
 # 		CPU architecture-specific subdireectory of ${BASE_USR_DIR}/usr/local/lib/.
 #		Need to create symlinks to the binaries by hand.
 # CJEC, 10-Jan-23: TODO: FIXME: Create symlinks to libdispatch.so etc. when building for Raspbian PiOS
    export LIBS="${LIBS} -ldispatch"
-   cd ../..
+   cd ..
 fi
 
 if [ "true" == "$NEEDSLIBOBJC2" ]; then
@@ -423,8 +441,10 @@ if [ "true" == "$NEEDSLIBOBJC2" ]; then
 	   cd ..
 	fi
 	
+if [ "false" == "$BUILDONLY" ]; then
    echo "$0: ==== Installing libobjc2 (libobjc.so.	4.x)..."
    cd build
+
    if [ "$UNAME" == "MINGW64_NT" ] ; then
 # Unset MSYS so that tar can create files with dangling links during make install
       unset MSYS
@@ -440,9 +460,11 @@ if [ "true" == "$NEEDSLIBOBJC2" ]; then
 # Switch MSYS to use native (real) symbolic links for building and avoiding .lnk files
       MSYS=winsymlinks:nativestrict ; export MSYS
    fi
+   cd ..
+fi
 
 # Reconfigure/Reinstall GNUstep Make #2 to pick up libobjc2...
-   cd ../../tools-make
+   cd ../tools-make
 
 	if [ "false" == "$INSTALLONLY" ]; then
 	   echo "$0: ==== Configure GNUstep Make #2 command: ./configure --prefix=${gnustep_prefix} --with-library-combo=ng-gnu-gnu --enable-objc-arc --enable-native-objc-exceptions --enable-install-ld-so-conf --with-layout=gnustep ${make_flags}"
@@ -459,6 +481,8 @@ if [ "true" == "$NEEDSLIBOBJC2" ]; then
       echo "$0: ==== Install GNUstep Make #2 FAILED"
 	  exit 1
    fi
+
+if [ "false" == "$BUILDONLY" ]; then
    if [ "$UNAME" == "MINGW64_NT" ] ; then
 # Unset MSYS so that tar can create files with dangling links during make install
       unset MSYS
@@ -474,6 +498,7 @@ if [ "true" == "$NEEDSLIBOBJC2" ]; then
    fi
 
    . $gnustep_prefix/System/Library/Makefiles/GNUstep.sh
+fi
   cd ..
   
 fi
@@ -494,6 +519,7 @@ if [ "true" == "$INSTALLDOC" ]; then
 	fi
 
 	echo "$0: ==== Installing GNUstep Make Documentation..."
+if [ "false" == "$BUILDONLY" ]; then 
 	if [ "$UNAME" == "MINGW64_NT" ] ; then
 # Unset MSYS so that tar can create files with dangling links during make install
    unset MSYS
@@ -507,6 +533,7 @@ if [ "true" == "$INSTALLDOC" ]; then
 # Switch MSYS to use native (real) symbolic links for building and avoiding .lnk files
 	   MSYS=winsymlinks:nativestrict ; export MSYS
 	fi
+fi
 fi
 
 # Build/Install GNUstep Base (Foundation)
@@ -523,6 +550,7 @@ if [ "false" == "$INSTALLONLY" ]; then
 	fi
 fi
 
+if [ "false" == "$BUILDONLY" ]; then 
 echo "$0: ==== Installing GNUstep Base (Foundation)..."
 if [ "$UNAME" == "MINGW64_NT" ] ; then
 # Unset MSYS so that tar can create files with dangling links during make install
@@ -536,6 +564,7 @@ fi
 if [ "$UNAME" == "MINGW64_NT" ] ; then
 # Switch MSYS to use native (real) symbolic links for building and avoiding .lnk files
    MSYS=winsymlinks:nativestrict ; export MSYS
+fi
 fi
 
 # Build/Install GNUstep Base (Foundation) Documentation
@@ -553,6 +582,7 @@ if [ "true" == "$INSTALLDOC" ]; then
 		fi
 	fi
 
+if [ "false" == "$BUILDONLY" ]; then 
 	echo "$0: ==== Installing GNUstep Base (Foundation) Documentation..."
 	if [ "$UNAME" == "MINGW64_NT" ] ; then
 # Unset MSYS so that tar can create files with dangling links during make install
@@ -567,6 +597,7 @@ if [ "true" == "$INSTALLDOC" ]; then
 # Switch MSYS to use native (real) symbolic links for building and avoiding .lnk files
 	   MSYS=winsymlinks:nativestrict ; export MSYS
 	fi
+fi
 fi
 
 # Build/Install GNUstep CoreBase (Core Foundation)
@@ -602,6 +633,7 @@ if [ "false" == "$INSTALLONLY" ]; then
 	fi
 fi
 
+if [ "false" == "$BUILDONLY" ]; then 
 echo "$0: ==== Installing GNUstep CoreBase (Core Foundation)..."
 if [ "$UNAME" == "MINGW64_NT" ] ; then
 # Unset MSYS so that tar can create files with dangling links during make install
@@ -615,6 +647,7 @@ fi
 if [ "$UNAME" == "MINGW64_NT" ] ; then
 # Switch MSYS to use native (real) symbolic links for building and avoiding .lnk files
    MSYS=winsymlinks:nativestrict ; export MSYS
+fi
 fi
 
 # Not only building/installing GNUstep Base, CoreBase?
@@ -639,6 +672,7 @@ if [ "false" == "$BASEONLY" ]; then
 		fi
 	fi
 
+if [ "false" == "$BUILDONLY" ]; then 
 	echo "$0: ==== Installing GNUstep GUI (Cocoa AppKit)..."
 	if [ "$UNAME" == "MINGW64_NT" ] ; then
 # Unset MSYS so that tar can create files with dangling links during make install
@@ -653,6 +687,7 @@ if [ "false" == "$BASEONLY" ]; then
 # Switch MSYS to use native (real) symbolic links for building and avoiding .lnk files
 	   MSYS=winsymlinks:nativestrict ; export MSYS
 	fi
+fi
 
 # Build/Install GNUstep Backend Graphics
 	cd ../libs-back
@@ -668,6 +703,7 @@ if [ "false" == "$BASEONLY" ]; then
 		fi
 	fi
 	
+if [ "false" == "$BUILDONLY" ]; then 
 	echo "$0: ==== Installing GNUstep Backend Graphics..."
 	if [ "$UNAME" == "MINGW64_NT" ] ; then
 # Unset MSYS so that tar can create files with dangling links during make install
@@ -683,6 +719,7 @@ if [ "false" == "$BASEONLY" ]; then
 	   MSYS=winsymlinks:nativestrict ; export MSYS
 	fi
 	. $gnustep_prefix/System/Library/Makefiles/GNUstep.sh
+fi
 
 # Build/Install essential applications: ProjectCenter
 	cd ../apps-projectcenter
@@ -697,6 +734,7 @@ if [ "false" == "$BASEONLY" ]; then
 		fi
 	fi
 	
+if [ "false" == "$BUILDONLY" ]; then 
 	echo "$0: ==== Installing GNUstep Projectcenter..."
 	if [ "$UNAME" == "MINGW64_NT" ] ; then
 # Unset MSYS so that tar can create files with dangling links during make install
@@ -711,6 +749,7 @@ if [ "false" == "$BASEONLY" ]; then
 # Switch MSYS to use native (real) symbolic links for building and avoiding .lnk files
 	   MSYS=winsymlinks:nativestrict ; export MSYS
 	fi
+fi
 
 # Build/Install essential applications: PDFKit
 	cd ../PDFKit
@@ -730,6 +769,7 @@ if [ "false" == "$BASEONLY" ]; then
 		fi
 	fi
 	
+if [ "false" == "$BUILDONLY" ]; then 
 	echo "$0: ==== Installing GNUstep PDFKit..."
 	if [ "$UNAME" == "MINGW64_NT" ] ; then
 # Unset MSYS so that tar can create files with dangling links during make install
@@ -744,6 +784,7 @@ if [ "false" == "$BASEONLY" ]; then
 # Switch MSYS to use native (real) symbolic links for building and avoiding .lnk files
 	   MSYS=winsymlinks:nativestrict ; export MSYS
 	fi
+fi
 
 # Build/Install essential applications: GWorkspace
 	cd ../apps-gworkspace
@@ -763,6 +804,7 @@ if [ "false" == "$BASEONLY" ]; then
 		fi
 	fi
 	
+if [ "false" == "$BUILDONLY" ]; then 
 	echo "$0: ==== Installing GNUstep GWorkspace..."
 	if [ "$UNAME" == "MINGW64_NT" ] ; then
 # Unset MSYS so that tar can create files with dangling links during make install
@@ -777,6 +819,7 @@ if [ "false" == "$BASEONLY" ]; then
 # Switch MSYS to use native (real) symbolic links for building and avoiding .lnk files
 	   MSYS=winsymlinks:nativestrict ; export MSYS
 	fi
+fi
 
 # Build/Install essential applications: SystemPreferences
 	cd ../apps-systempreferences
@@ -791,6 +834,7 @@ if [ "false" == "$BASEONLY" ]; then
 		fi
 	fi
 	
+if [ "false" == "$BUILDONLY" ]; then 
 	echo "$0: ==== Installing GNUstep SystemPreferences..."
 	if [ "$UNAME" == "MINGW64_NT" ] ; then
 # Unset MSYS so that tar can create files with dangling links during make install
@@ -805,6 +849,7 @@ if [ "false" == "$BASEONLY" ]; then
 # Switch MSYS to use native (real) symbolic links for building and avoiding .lnk files
 	   MSYS=winsymlinks:nativestrict ; export MSYS
 	fi
+fi
 
 # Build/Install essential applications: Gorm
 	cd ../apps-gorm
@@ -819,6 +864,7 @@ if [ "false" == "$BASEONLY" ]; then
 		fi
 	fi
 	
+if [ "false" == "$BUILDONLY" ]; then 
 	echo "$0: ==== Installing GNUstep Gorm..."
 	if [ "$UNAME" == "MINGW64_NT" ] ; then
 # Unset MSYS so that tar can create files with dangling links during make install
@@ -833,11 +879,13 @@ if [ "false" == "$BASEONLY" ]; then
 # Switch MSYS to use native (real) symbolic links for building and avoiding .lnk files
 	   MSYS=winsymlinks:nativestrict ; export MSYS
 	fi
+fi
 
 # After the last build/install operation, move back to the starting directory
 	cd ../
 
 # Perform other operations
+if [ "false" == "$BUILDONLY" ]; then 
 	echo "$0: ==== Executing Platform-Specific Post-Installation script..."
 	if [ "$UNAME" == "MINGW64_NT" ] ; then
 # Execute post-install script
@@ -864,6 +912,7 @@ if [ "false" == "$BASEONLY" ]; then
 		  fi
 	   fi
 	fi
+fi
 fi
 
 echo "$0: ==== compile-all Done. Use 'openapp GWorkspace' to test a full installation"
