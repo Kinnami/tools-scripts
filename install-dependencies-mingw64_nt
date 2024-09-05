@@ -23,6 +23,8 @@ echo "2) gnustep-base dependencies"
 pacman --noconfirm -S mingw-w64-x86_64-libxml2
 pacman --noconfirm -S mingw-w64-x86_64-gnutls
 pacman --noconfirm -S mingw-w64-x86_64-libxslt
+# includes Block.h file to compile CFrunLoop.c for libs-corebase 
+pacman --noconfirm -S mingw-w64-x86_64-libblocksruntime-swift
 
 echo "3) gnustep-gui dependencies"
 pacman --noconfirm -S mingw-w64-x86_64-libjpeg-turbo
@@ -38,7 +40,11 @@ pacman --noconfirm -S mingw-w64-x86_64-windows-default-manifest
 echo "4) gnustep-back dependencies"
 pacman --noconfirm -S mingw-w64-x86_64-cairo
 
-echo "5) compiler, also install older binutils to avoid linking issue"
+echo "5) libTracelog dependencies"
+# /mingw64/include/backtrace.h is required to build libTracelog
+pacman --noconfirm -S mingw-w64-x86_64-libbacktrace
+
+echo "6) compiler, also install older binutils to avoid linking issue"
 pacman --noconfirm -S mingw-w64-x86_64-clang
 pacman --noconfirm -S mingw-w64-x86_64-gcc
 pacman --noconfirm -S mingw-w64-x86_64-gcc-objc
@@ -51,7 +57,7 @@ pacman --noconfirm -S mingw-w64-x86_64-lld
 #
 # pacman --noconfirm -U ./tools-scripts/Packages/mingw-w64-x86_64-binutils-2.34-3-any.pkg.tar.zst
 
-echo "6) tools building libobjc2"
+echo "7) tools building libobjc2"
 pacman --noconfirm -S ninja
 pacman --noconfirm -S asciidoc
 pacman --noconfirm -S mingw-w64-x86_64-lld
