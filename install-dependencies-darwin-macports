@@ -43,6 +43,10 @@ sudo port install portaudio
 sudo port install make
 sudo port install cmake
 
+# CJEC, 22-Nov-23: Install additional dependencies required by AmiShare
+sudo port install curl
+sudo port install zenity
+
 #echo "------- Upgrade existing packages..."
 #brew upgrade
 #echo "-------"

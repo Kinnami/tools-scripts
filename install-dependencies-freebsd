@@ -32,7 +32,9 @@ sudo pkg install -y gmake wget git subversion libxml2 \
 	jpeg-turbo libX11 libXft libXrandr pkgconf \
 	curl \
 	binutils \
-	fusefs-libs
+	fusefs-libs \
+	zenity
+	
 # GhostBSD: May also need: https://forums.swift.org/t/swift-compilation-on-freebsd/20597/4
 # ninja python e2fsprogs-libuuid libedit sqlite3 swig ncurses rsync
 
