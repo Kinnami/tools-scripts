@@ -71,6 +71,17 @@ else
    IS_ANDROID="false"
 fi
 
+distro1=`grep "^ID=" /etc/os-release | sed 's/ID="*\([^"]*\)"*/\1/'`
+distro2=`grep "^VERSION_ID=" /etc/os-release | sed 's/.*ID="*\([^"]*\)"*/\1/'`
+if [ "$distro1" == "debian" ] && [ -f "/etc/rpi-issue" ]; then
+    distro1="raspbian"
+fi
+if [ "$distro1" == "raspbian" ] && [ "$distro2" == "11" ]; then
+	IS_RASPBIAN="true"
+else
+	IS_RASPBIAN="false"
+fi
+
 # Determine where to install GNUstep
 if [ "$1" != "" ]; then
    gnustep_prefix="$1"
@@ -400,6 +411,12 @@ if [ "true" == "$NEEDSLIBDISPATCH" ]; then
 # 		CPU architecture-specific subdireectory of ${BASE_USR_DIR}/usr/local/lib/.
 #		Need to create symlinks to the binaries by hand.
 # CJEC, 10-Jan-23: TODO: FIXME: Create symlinks to libdispatch.so etc. when building for Raspbian PiOS
+   if [ "$IS_RASPBIAN" == "true" ]; then
+	   pushd /usr/local/lib
+	   $SUDO ln -s */libdispatch.so
+	   $SUDO ln -s */libBlocksRuntime.so
+	   popd
+   fi
    export LIBS="${LIBS} -ldispatch"
    cd ../..
 fi
