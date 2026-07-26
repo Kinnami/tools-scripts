@@ -23,11 +23,6 @@ echo "2) gnustep-base dependencies"
 pacman --noconfirm -S mingw-w64-x86_64-libxml2
 pacman --noconfirm -S mingw-w64-x86_64-gnutls
 pacman --noconfirm -S mingw-w64-x86_64-libxslt
-# includes Block.h file to compile CFrunLoop.c for libs-corebase
-pacman --noconfirm -S mingw-w64-x86_64-libblocksruntime-swift
-# pacman --noconfirm -S mingw-w64-x86_64-libobjc2
-pacman --noconfirm -S mingw-w64-x86_64-autotools
-# pacman --noconfirm -S mingw-w64-clang
 
 echo "3) gnustep-gui dependencies"
 pacman --noconfirm -S mingw-w64-x86_64-libjpeg-turbo
@@ -43,15 +38,11 @@ pacman --noconfirm -S mingw-w64-x86_64-windows-default-manifest
 echo "4) gnustep-back dependencies"
 pacman --noconfirm -S mingw-w64-x86_64-cairo
 
-echo "5) libTracelog dependencies"
-# /mingw64/include/backtrace.h is required to build libTracelog
-pacman --noconfirm -S mingw-w64-x86_64-libbacktrace
-
-echo "6) compiler, also install older binutils to avoid linking issue"
+echo "5) compiler, also install libobjc2 from msys2 repo, get lld and autotools"
 pacman --noconfirm -S mingw-w64-x86_64-clang
-pacman --noconfirm -S mingw-w64-x86_64-gcc
-pacman --noconfirm -S mingw-w64-x86_64-gcc-objc
 pacman --noconfirm -S mingw-w64-x86_64-lld
+pacman --noconfirm -S mingw-w64-x86_64-libobjc2
+pacman --noconfirm -S mingw-w64-x86_64-autotools
 
 #
 # IMPORTANT: if you are using the GNUstep release or latest tarballs
@@ -60,15 +51,10 @@ pacman --noconfirm -S mingw-w64-x86_64-lld
 #
 # pacman --noconfirm -U ./tools-scripts/Packages/mingw-w64-x86_64-binutils-2.34-3-any.pkg.tar.zst
 
-echo "7) tools building libobjc2"
+echo "6) tools building libobjc2"
 pacman --noconfirm -S ninja
 pacman --noconfirm -S asciidoc
 pacman --noconfirm -S mingw-w64-x86_64-lld
 
-# CJEC, 3-Oct-22: Install required tools to build GNUstep documentation
-#			make install cannot find makeinfo, latex
-echo "7) tools building documentation"
-pacman --noconfirm -S mingw-w64-x86_64-texlive-latex-recommended
-
 echo "Done."
-# echo "Don't forget to run /mingw64_shell.cmd -mingw64 to create a new session to build in."
+# echo "Don't forget to run /mingw64_shell.bat to create a session to build in."

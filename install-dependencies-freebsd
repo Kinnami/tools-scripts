@@ -6,23 +6,24 @@ echo "      Also, the user must have sudo access to properly execute this script
 echo "Installing..."
 
 # Note: libobjc2 (AKA libobjc.so.4) distributed by pkg is not maintaained and now breaks. Continue to use the pkg-maintained libdispatch v5.5.1
-sudo pkg install libdispatch
-sudo pkg install llvm
-sudo pkg install gmake
-sudo pkg install cmake
-sudo pkg install windowmaker
-sudo pkg install openjpeg
-sudo pkg install tiff
-sudo pkg install png
-sudo pkg install libxml2
-sudo pkg install libxslt
-sudo pkg install gnutls
-sudo pkg install libffi
-sudo pkg install icu
-sudo pkg install cairo
-sudo pkg install avahi
-sudo pkg install portaudio
-sudo pkg install flite
+sudo pkg install -y libdispatch
+sudo pkg install -y llvm
+sudo pkg install -y gmake
+sudo pkg install -y cmake
+sudo pkg install -y windowmaker
+sudo pkg install -y openjpeg
+sudo pkg install -y tiff
+sudo pkg install -y png
+sudo pkg install -y libxml2
+sudo pkg install -y libxslt
+sudo pkg install -y gnutls
+sudo pkg install -y libffi
+sudo pkg install -y icu
+sudo pkg install -y cairo
+sudo pkg install -y avahi
+sudo pkg install -y portaudio
+sudo pkg install -y flite
+sudo pkg install -y curl
 
 # CJEC, 14-Mar-22: Install additional dependencies for GhostBSD/FreeBSD build with CLANG
 #					derived from modifying Ubuntu 20.04 build in

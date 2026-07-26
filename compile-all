@@ -162,6 +162,9 @@ else
    fi
 fi
 
+# Get architecture
+ARCH=`uname -m`
+
 # If we are installing into home, then we do not need root...
 if
    echo $gnustep_prefix | grep "^/home/"
@@ -528,6 +531,14 @@ if [ "$UNAME" == "MINGW64_NT" ] ; then
 # Unset MSYS so that tar can create files with dangling links during make install
    unset MSYS
 fi
+
+. $prefix/System/Library/Makefiles/GNUstep.sh
+
+# Setup clang specific libraries...
+if ! $USING_GCC; then
+    ${scriptsdir}/clang-setup "$CLANG" "$CLANGPP"
+fi
+
 if [ "true" == "$NEEDSROOT" ]; then
    ${SUDO} -u root ./install.sh $gnustep_prefix $MAKE
 else
